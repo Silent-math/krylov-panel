@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Krylov · Tablero</title>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+<style>
+:root{
+  --bg:#f6f5f2;--card:#fff;--ink:#1d1d1b;--mute:#6b6a65;--line:#e4e2dc;
+  --ok:#1f9d55;--warn:#d69e2e;--bad:#d64545;--info:#3b6fd4;--done:#9aa39d;
+  --okbg:#e7f5ec;--warnbg:#fbf3e0;--badbg:#fbe9e9;--infobg:#e8effb;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121211;--card:#1c1c1a;--ink:#ecebe7;--mute:#9b9a94;--line:#2e2e2b;
+  --okbg:#15301f;--warnbg:#33290f;--badbg:#3a1a1a;--infobg:#17243d;--done:#5d655f;
+}}
+:root[data-theme="dark"]{
+  --bg:#121211;--card:#1c1c1a;--ink:#ecebe7;--mute:#9b9a94;--line:#2e2e2b;
+  --okbg:#15301f;--warnbg:#33290f;--badbg:#3a1a1a;--infobg:#17243d;--done:#5d655f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+main{max-width:1280px;margin:0 auto;padding:16px}
+h1{font-size:20px;margin:0}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:24px 0 8px}
+h3{font-size:14px;margin:0 0 6px}
+a{color:var(--info)}
+code{font-size:12px;background:var(--bg);padding:1px 4px;border-radius:4px}
+.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.sync{color:var(--mute);font-size:12px}
+.sync button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:3px 10px;cursor:pointer}
+.clocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:14px}
+.clock{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.clock .k{font-size:12px;color:var(--mute)}
+.clock .v{font-size:22px;font-weight:650;font-variant-numeric:tabular-nums}
+.alerts{display:flex;flex-direction:column;gap:6px}
+.alert{border-radius:8px;padding:7px 10px;font-size:13px}
+.alert.bad{background:var(--badbg)} .alert.warn{background:var(--warnbg)} .alert.info{background:var(--infobg)}
+.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
+.role{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;border-top:4px solid var(--line)}
+.role.ok{border-top-color:var(--ok)} .role.warn{border-top-color:var(--warn)} .role.bad{border-top-color:var(--bad)}
+.role .head{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.role .sem{font-size:13px;margin:4px 0 8px}
+.role .meta{font-size:12px;color:var(--mute)}
+.role .sec{margin-top:10px}
+.role .sec b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin-bottom:2px}
+.role ul{margin:0;padding-left:16px} .role li{margin:2px 0}
+.role .sec table{font-size:12px}
+.next{background:var(--infobg);border-radius:8px;padding:6px 8px;margin-top:8px;font-size:13px}
+.gantt{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;overflow-x:auto}
+.gin{position:relative;min-width:900px}
+.gaxis{position:relative;height:18px;margin-left:90px;font-size:11px;color:var(--mute)}
+.gaxis span{position:absolute;transform:translateX(-50%)}
+.grow{display:flex;align-items:center;height:30px;border-top:1px solid var(--line)}
+.grow .lab{width:90px;flex:none;font-size:12px;color:var(--mute)}
+.grow .track{position:relative;flex:1;height:100%}
+.bar{position:absolute;top:5px;height:20px;border-radius:4px;font-size:10.5px;line-height:20px;padding:0 4px;overflow:hidden;white-space:nowrap;color:#fff;cursor:default}
+.bar.hecha{background:var(--done)} .bar.curso{background:var(--info)} .bar.ahora{background:var(--info);opacity:.75}
+.bar.pasada{background:var(--warn)} .bar.atrasada{background:var(--bad)} .bar.pendiente{background:transparent;color:var(--mute);border:1px dashed var(--mute)}
+.vline{position:absolute;top:0;bottom:0;width:0;border-left:2px solid var(--bad);z-index:2}
+.vline.h{border-left:1px dashed var(--mute);z-index:1}
+.vline .t{position:absolute;top:-16px;left:3px;font-size:10px;color:var(--bad);white-space:nowrap}
+.vline.h .t{color:var(--mute)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mute);margin-top:8px}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.night{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;font-size:12px}
+.chip{border-radius:999px;padding:2px 9px;border:1px solid var(--line)}
+.chip.hecha{background:var(--okbg)} .chip.curso{background:var(--infobg)}
+.two{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:12px}
+@media (max-width:860px){.two{grid-template-columns:1fr}}
+.md,.feed{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 16px 12px}
+.md h2{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);margin:16px 0 6px}
+.md table,.role table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}
+.md td,.md th,.role td,.role th{border:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
+.feed ol{list-style:none;margin:0;padding:0}
+.feed li{padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
+.feed .when{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:10.5px;border-radius:4px;padding:0 5px;margin-right:4px;color:#fff}
+.tag.producto{background:#8b5cf6}.tag.amortizacion{background:#0e9f9a}.tag.seguimiento{background:#e07a1f}.tag.otro{background:var(--done)}
+.err{color:var(--bad)}
+footer{color:var(--mute);font-size:12px;margin:24px 0}
+</style>
+</head>
+<body>
+<main>
+  <div class="top">
+    <h1>Krylov · cómo vamos</h1>
+    <div class="sync"><span id="sync">Cargando…</span> <button id="btn">Actualizar</button></div>
+  </div>
+  <div class="clocks" id="clocks"></div>
+
+  <h2>Alertas</h2>
+  <div class="alerts" id="alerts"></div>
+
+  <h2>Los tres computadores</h2>
+  <div class="roles" id="roles"></div>
+
+  <h2>Plan del sábado (WORKPLAN)</h2>
+  <div class="gantt"><div class="gin" id="gantt"></div>
+    <div class="legend">
+      <span><i style="background:var(--done)"></i>hecha</span>
+      <span><i style="background:var(--info)"></i>en curso / toca ahora</span>
+      <span><i style="background:var(--warn)"></i>pasada de su hora</span>
+      <span><i style="background:var(--bad)"></i>atrasada: más del doble de su duración (regla de corte)</span>
+      <span><i style="border:1px dashed var(--mute)"></i>pendiente</span>
+    </div>
+    <div class="night" id="night"></div>
+  </div>
+
+  <div class="two">
+    <div><h2>Tablero (estado/TABLERO.md)</h2><div class="md" id="tablero"></div></div>
+    <div><h2>Últimos commits</h2><div class="feed" id="feed"></div></div>
+  </div>
+
+  <footer>Lee el repositorio público <a id="repolink" target="_blank" rel="noopener"></a> cada 3 minutos: <code>estado/*.md</code>, <code>WORKPLAN.md</code> y los commits. Solo lectura. Hora de Santiago.</footer>
+</main>
+
+<script>
+// PARSE-START
+const REPO = 'platanus-hack/platanus-hack-26-cl-team-5';
+const ROLES = [
+  {id:'producto', pc:'PC 1', pre:'P', file:'estado/producto.md'},
+  {id:'amortizacion', pc:'PC 2', pre:'A', file:'estado/amortizacion.md'},
+  {id:'seguimiento', pc:'PC 3', pre:'S', file:'estado/seguimiento.md'},
+];
+const DAY0 = Date.parse('2026-11-21T00:00:00-03:00'); // sábado 00:00, Santiago (UTC-3)
+const toMin = s => { const m = /^(\d{1,2}):(\d{2})$/.exec((s||'').trim()); return m ? +m[1]*60 + +m[2] : null; };
+const fmt = m => String(Math.floor(m/60)%24).padStart(2,'0') + ':' + String(Math.round(m%60)).padStart(2,'0');
+
+function sections(md){
+  const out = {}; let cur = '_';
+  for (const line of md.split('\n')){
+    const h = /^##\s+(.+)$/.exec(line);
+    if (h){ cur = h[1].trim(); out[cur] = []; continue; }
+    (out[cur] ||= []).push(line);
+  }
+  for (const k in out) out[k] = out[k].join('\n').trim();
+  return out;
+}
+const bullets = txt => (txt||'').split('\n').filter(l => /^\s*-\s+/.test(l)).map(l => l.replace(/^\s*-\s+/,''));
+const isEmpty = txt => { const b = bullets(txt); return b.length === 0 || b.every(x => /^\(?ninguno\)?/i.test(x.trim())); };
+
+// IDs mencionados en un texto, expandiendo rangos tipo "A-01 a A-04" o "A-B1 a A-B4"
+function mentionedIds(txt){
+  const ids = new Set();
+  const re = /\b([PAS])-([A-Z]?)(\d+)\b(?:\s*(?:a|al|-|–)\s*\1-\2(\d+)\b)?/g;
+  let m;
+  while ((m = re.exec(txt||''))){
+    const a = +m[3], b = m[4] ? +m[4] : a, w = m[3].length;
+    for (let i = a; i <= Math.min(b, a+30); i++) ids.add(`${m[1]}-${m[2]}${String(i).padStart(w,'0')}`);
+  }
+  return ids;
+}
+
+// Una tarea está hecha si su id aparece en el sujeto de una línea de «Hecho»
+// (antes del primer punto o dos puntos), no en cualquier parte: «no existen todavía (A-N2)» no cuenta.
+function doneIds(hecho){
+  const ids = new Set();
+  for (const b of bullets(hecho)){
+    const head = b.replace(/^[a-záéíóú]{3}\s+\d{1,2}:\d{2}\s*·\s*/i,'').split(/[.:]/)[0].slice(0,60);
+    for (const id of mentionedIds(head)) ids.add(id);
+  }
+  return ids;
+}
+
+function parseTasks(workplan){
+  const tasks = [];
+  for (const line of workplan.split('\n')){
+    const m = /^\|\s*([PAS]-[A-Z0-9]+)\s*\|([^|]*)\|([^|]*)\|([^|]*)\|/.exec(line);
+    if (!m) continue;
+    const when = m[2].trim(), start = toMin(when), dur = parseInt(m[3]) || null;
+    const desc = (start === null && when.length > 12 ? when : m[4]).replace(/\*\*|`|\*/g,'').trim();
+    tasks.push({id:m[1], when, start, dur, desc, night: start === null});
+  }
+  return tasks;
+}
+function parseHitos(workplan){
+  const h = {}; let m;
+  const re1 = /\*\*(H\d)\s*·\s*(\d{1,2}:\d{2})\*\*/g;
+  while ((m = re1.exec(workplan))) h[m[1]] = {id:m[1], t:toMin(m[2])};
+  const re2 = /\*\*(H\d)\s*·[^·*]+·\s*([^*]+)\*\*/g;
+  while ((m = re2.exec(workplan))) if (h[m[1]]) h[m[1]].q = m[2].trim();
+  const d = /\*\*Antes de dormir\s*·\s*(\d{1,2}:\d{2})/.exec(workplan);
+  const list = Object.values(h);
+  if (d) list.push({id:'dormir', t:toMin(d[1]), q:'Antes de dormir'});
+  return list.filter(x => x.t !== null).sort((a,b) => a.t - b.t);
+}
+
+function status(task, done, inProgress, now){
+  if (done.has(task.id)) return 'hecha';
+  if (inProgress.has(task.id)) return 'curso';
+  if (task.night) return 'pendiente';
+  const d = task.dur || 30;
+  if (now >= task.start + 2*d) return 'atrasada';
+  if (now >= task.start + d) return 'pasada';
+  if (now >= task.start) return 'ahora';
+  return 'pendiente';
+}
+
+function commitRole(c, learned){
+  const msg = c.commit.message.split('\n')[0];
+  const name = c.commit.author.name;
+  let m = /^estado\s+(producto|amortizacion|seguimiento)\b/i.exec(msg);
+  if (m){ learned[name] = m[1].toLowerCase(); return learned[name]; }
+  if (/^(ronda|H\d\b|tablero|hito)/i.test(msg)) return 'seguimiento';
+  return learned[name] || null;
+}
+// PARSE-END
+
+const $ = id => document.getElementById(id);
+const md = s => DOMPurify.sanitize(marked.parse(s||''));
+const mdi = s => DOMPurify.sanitize(marked.parseInline(s||''));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const nowMin = () => (Date.now() - DAY0) / 60000;
+const ago = ms => { const m = Math.round((Date.now()-ms)/60000); return m < 1 ? 'recién' : m < 60 ? `hace ${m} min` : `hace ${Math.floor(m/60)} h ${m%60} min`; };
+const sleeping = n => n >= toMin('05:15') && n < toMin('08:15');
+
+let lastSync = 0, nextSync = 0, data = null;
+const PERIOD = 180e3;
+$('repolink').href = 'https://github.com/' + REPO; $('repolink').textContent = REPO;
+
+async function load(){
+  $('sync').textContent = 'Sincronizando…';
+  let commits = null, sha = 'main', rate = '';
+  try{
+    const r = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=40`, {cache:'no-cache'});
+    rate = r.headers.get('x-ratelimit-remaining');
+    if (r.ok){ commits = await r.json(); sha = commits[0]?.sha || 'main'; }
+  }catch(e){}
+  const raw = p => fetch(`https://raw.githubusercontent.com/${REPO}/${sha}/${p}`, {cache: sha==='main' ? 'no-cache' : 'default'})
+                    .then(r => r.ok ? r.text() : '').catch(() => '');
+  const [tablero, workplan, ...estados] = await Promise.all(['estado/TABLERO.md','WORKPLAN.md', ...ROLES.map(r => r.file)].map(raw));
+  data = {commits, sha, rate, tablero, workplan, estados};
+  lastSync = Date.now(); nextSync = lastSync + PERIOD;
+  render();
+}
+
+function render(){
+  if (!data) return;
+  const {commits, sha, tablero, workplan, estados} = data;
+  const now = nowMin();
+  const tabSec = sections(tablero);
+  const est = estados.map(sections);
+
+  // Semáforo del tablero
+  const sem = {};
+  for (const line of (tabSec['Semáforo']||'').split('\n')){
+    const c = line.split('|').map(x => x.trim());
+    const r = ROLES.find(r => c[1] && c[1].toLowerCase().startsWith(r.id));
+    if (r) sem[r.id] = {estado:c[2], nota:c[3], cls: /🔴/.test(c[2]) ? 'bad' : /🟡|🟠/.test(c[2]) ? 'warn' : /🟢/.test(c[2]) ? 'ok' : ''};
+  }
+
+  // Tareas
+  const done = new Set(), prog = new Set();
+  est.forEach(s => { for (const id of doneIds(s['Hecho'])) done.add(id); for (const id of mentionedIds(s['En curso'])) prog.add(id); });
+  const tasks = parseTasks(workplan).map(t => ({...t, st: status(t, done, prog, now)}));
+  const hitos = parseHitos(workplan);
+
+  // Commits por rol
+  const learned = {}, lastByRole = {};
+  const cs = (commits||[]).slice().reverse().map(c => ({c, role: null}));
+  cs.forEach(x => x.role = commitRole(x.c, learned));
+  cs.forEach(x => { if (!x.role) x.role = learned[x.c.commit.author.name] || null; });
+  cs.reverse();
+  for (const x of cs) if (x.role && !lastByRole[x.role]) lastByRole[x.role] = Date.parse(x.c.commit.committer.date);
+
+  // Relojes
+  const updated = /\*\*Actualizado:\*\*\s*([^·\n]+)/.exec(tablero)?.[1]?.trim() || '—';
+  const hito = /\*\*Hito vigente:\*\*\s*([^\n]+?)\s*·\s*\*\*/.exec(tablero)?.[1] || '';
+  const nextH = hitos.find(h => h.t > now);
+  $('clocks').innerHTML = [
+    ['Hora en Santiago', new Date().toLocaleTimeString('es-CL',{timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit'})],
+    ['Producto terminado · sáb 18:00', cd(Date.parse('2026-11-21T18:00:00-03:00'))],
+    ['Entrega · dom 08:30', cd(Date.parse('2026-11-22T08:30:00-03:00'))],
+    ['Próximo hito', nextH ? `${nextH.id === 'dormir' ? 'Dormir' : nextH.id} · ${fmt(nextH.t)}` : '—', nextH ? `en ${Math.round(nextH.t-now)} min${nextH.q ? ' · '+nextH.q : ''}` : ''],
+    ['Tablero actualizado', updated, hito],
+  ].map(([k,v,s]) => `<div class="clock"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div>${s?`<div class="k">${mdi(s)}</div>`:''}</div>`).join('');
+
+  // Alertas
+  const al = [];
+  if (!commits) al.push(['warn', `No se pudo leer la lista de commits de GitHub${data.rate==='0'?' (límite de 60 consultas por hora de esta red)':''}. Los archivos se leen igual, con hasta 5 minutos de atraso.`]);
+  ROLES.forEach((r,i) => {
+    const s = est[i];
+    if (!isEmpty(s['Bloqueos'])) al.push(['bad', `<b>${r.pc} · ${r.id} bloqueado:</b> ${bullets(s['Bloqueos']).map(mdi).join(' · ')}`]);
+    if (!isEmpty(s['Pedidos a otros'])) al.push(['info', `<b>${r.pc} pide:</b> ${mdi(bullets(s['Pedidos a otros']).slice(-1)[0])}`]);
+    const lc = lastByRole[r.id];
+    if (commits && lc && (Date.now()-lc) > 45*60e3 && !sleeping(now)) al.push(['warn', `${r.pc} · ${r.id}: sin commits ${ago(lc)}.`]);
+  });
+  const tu = toMin(/(\d{1,2}:\d{2})/.exec(updated)?.[1]);
+  if (tu !== null && now - tu > 30 && !sleeping(now)) al.push(['warn', `El tablero no se actualiza hace ${Math.round(now-tu)} min (lo escribe PC 3 en cada ronda).`]);
+  tasks.filter(t => t.st === 'atrasada').forEach(t => al.push(['bad', `<b>${t.id}</b> atrasada: debía partir ${t.when} y durar ${t.dur} min. Regla de corte: se corta o se simplifica. <span class="sync">${esc(t.desc.slice(0,110))}</span>`]));
+  $('alerts').innerHTML = al.length ? al.map(([c,h]) => `<div class="alert ${c}">${h}</div>`).join('') : '<div class="alert info">Sin alertas.</div>';
+
+  // Tarjetas por rol
+  $('roles').innerHTML = ROLES.map((r,i) => {
+    const s = est[i], sm = sem[r.id] || {};
+    const persona = /Persona:\s*([^·\n]+)/.exec(estados[i])?.[1]?.trim() || '';
+    const next = tasks.filter(t => t.id.startsWith(r.pre+'-') && !t.night && !['hecha'].includes(t.st)).sort((a,b) => a.start-b.start)[0];
+    const lc = lastByRole[r.id];
+    const sec = (title, html) => html ? `<div class="sec"><b>${title}</b>${html}</div>` : '';
+    const list = arr => arr.length ? `<ul>${arr.map(x => `<li>${mdi(x)}</li>`).join('')}</ul>` : '';
+    const train = s['Entrenamiento en curso'];
+    return `<div class="role ${sm.cls||''}">
+      <div class="head"><h3>${r.pc} · ${r.id}</h3><span class="meta">${esc(persona)}</span></div>
+      <div class="sem">${esc(sm.estado||'sin semáforo')} ${sm.nota ? '· '+mdi(sm.nota) : ''}</div>
+      <div class="meta">Último commit: ${lc ? ago(lc) + ' (' + new Date(lc).toLocaleTimeString('es-CL',{timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit'}) + ')' : '—'}</div>
+      ${next ? `<div class="next">Siguiente en el plan: <b>${next.id}</b> (${next.when}, ${next.dur} min) · ${esc(next.desc.slice(0,120))}</div>` : ''}
+      ${sec('En curso', list(bullets(s['En curso'])))}
+      ${isEmpty(s['Bloqueos']) ? '' : sec('Bloqueos', list(bullets(s['Bloqueos'])))}
+      ${train ? sec('Entrenamiento en curso', md(train.split('\n').filter(l => /^\|/.test(l)).filter((l,j) => j < 2 || /^\|\s*(Motor|Hora de inicio)/.test(l)).join('\n'))) : ''}
+      ${sec('Últimos hechos', list(bullets(s['Hecho']).slice(-4).reverse()))}
+    </div>`;
+  }).join('');
+
+  // Gantt
+  const T0 = toMin('03:00'), T1 = toMin('18:30'), pct = m => ((m - T0) / (T1 - T0) * 100).toFixed(2) + '%';
+  let g = '<div class="gaxis">';
+  for (let h = 3; h <= 18; h++) g += `<span style="left:${pct(h*60)}">${String(h).padStart(2,'0')}</span>`;
+  g += '</div><div style="position:relative">';
+  ROLES.forEach(r => {
+    g += `<div class="grow"><div class="lab">${r.pc} · ${r.id.slice(0,5)}.</div><div class="track">`;
+    tasks.filter(t => t.id.startsWith(r.pre+'-') && !t.night).forEach(t => {
+      const w = Math.max(t.dur || 20, 6);
+      g += `<div class="bar ${t.st}" style="left:${pct(t.start)};width:calc(${((w)/(T1-T0)*100).toFixed(2)}% - 2px)" title="${esc(t.id+' · '+t.when+' · '+(t.dur||'?')+' min · '+t.st+'\n'+t.desc)}">${t.id}</div>`;
+    });
+    g += '</div></div>';
+  });
+  g += '<div style="position:absolute;inset:0 0 0 90px;pointer-events:none">';
+  hitos.forEach(h => g += `<div class="vline h" style="left:${pct(h.t)}"><span class="t">${h.id==='dormir'?'zzz':h.id}</span></div>`);
+  if (now > T0 && now < T1) g += `<div class="vline" style="left:${pct(now)}"><span class="t">ahora ${fmt(now)}</span></div>`;
+  g += '</div></div>';
+  $('gantt').innerHTML = g;
+  $('night').innerHTML = '<span class="sync">Noche (agentes solos):</span>' + tasks.filter(t => t.night).map(t =>
+    `<span class="chip ${t.st}" title="${esc(t.desc)}">${t.st==='hecha'?'✓ ':''}${t.id}</span>`).join('');
+
+  // Tablero completo, sin el título ni el semáforo (ya están arriba)
+  const tabMd = tablero.replace(/^#\s.*\n/, '').replace(/^## Semáforo[\s\S]*?(?=^## )/m, '');
+  $('tablero').innerHTML = tablero ? md(tabMd) : '<p class="err">No se pudo leer estado/TABLERO.md</p>';
+
+  // Commits
+  $('feed').innerHTML = commits ? '<ol>' + cs.slice(0,25).map(({c, role}) => {
+    const t = Date.parse(c.commit.committer.date);
+    return `<li><span class="tag ${role||'otro'}">${role ? ROLES.find(r => r.id===role).pc : '—'}</span><a href="${c.html_url}" target="_blank" rel="noopener">${esc(c.commit.message.split('\n')[0])}</a><div class="when">${new Date(t).toLocaleTimeString('es-CL',{timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit'})} · ${esc(c.commit.author.name)} · ${ago(t)}</div></li>`;
+  }).join('') + '</ol>' : '<p class="err">Lista de commits no disponible.</p>';
+
+  tick();
+}
+
+function cd(t){ const s = Math.max(0, Math.round((t - Date.now())/1000)); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), ss = s%60;
+  return `${h} h ${String(m).padStart(2,'0')} min ${String(ss).padStart(2,'0')} s`; }
+function tick(){
+  if (lastSync) $('sync').textContent = `Sincronizado ${new Date(lastSync).toLocaleTimeString('es-CL',{timeZone:'America/Santiago'})} · commit ${data.sha.slice(0,7)} · próxima en ${Math.max(0,Math.round((nextSync-Date.now())/1000))} s`;
+  document.querySelectorAll('.clock .v').forEach((el,i) => { if (i===1) el.textContent = cd(Date.parse('2026-11-21T18:00:00-03:00')); if (i===2) el.textContent = cd(Date.parse('2026-11-22T08:30:00-03:00')); });
+}
+$('btn').onclick = load;
+setInterval(() => { if (Date.now() >= nextSync) load(); else tick(); }, 1000);
+setInterval(render, 60e3);
+load();
+</script>
+</body>
+</html>

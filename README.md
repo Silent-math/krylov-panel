@@ -13,7 +13,7 @@ Pregunta por el último commit cada 90 segundos y solo vuelve a leer los archivo
 ## Qué muestra
 
 1. **Cuentas regresivas:** producto terminado (sáb 18:00), tope de redes (sáb 20:30), entrega (dom 08:00), pitch (dom 09:30), el próximo hito y hace cuánto se actualizó el tablero. Debajo, hasta tres alertas.
-2. **Las cinco decisiones:** por cada caso, sus seis etapas (datos, simulador, método lento, red, sello, en la app), quién responde hoy esa tarjeta y lo medido en su `sello.json`. Avisa cuando el tablero y el sello no coinciden.
+2. **Las cinco decisiones:** por cada caso, sus seis etapas (datos, simulador, red, sello, en la app y, al final, método lento: D-38), quién responde hoy esa tarjeta y lo medido en su `sello.json`. Avisa cuando el tablero y el sello no coinciden.
 3. **Los cinco modelos:** por cada motor, cómo opera en simple, sus niveles (del tamaño del archivo a lo que se decide, con símbolo, significado y a priori), su estado pieza por pieza con el conteo («7 de 13»), qué falta ahora y, plegado, su bloque de ecuaciones.
 4. **Entrenamiento:** qué entrena cada MacBook ahora y el calendario de las dos rondas.
 5. **Los tres computadores:** semáforo, en qué está cada uno y qué sigue.
@@ -27,7 +27,7 @@ Mientras `main` tenga el plan anterior dice «Esperando el pivote en main» y no
 **`estado/TABLERO.md`**
 
 - `**Actualizado:** sáb 21-nov 12:40 · …` (toma la primera hora; «dom» suma un día).
-- `## Los cinco casos`: una tabla con las columnas `Caso | Motor | Datos | Simulador | Método lento | Red | Sello | En la app | Responde`, una fila por caso (`leyes`, `taludes`, `flotacion`, `flota`, `sismicidad`). Cada etapa empieza con `listo`, `en curso`, `pendiente`, `no pasa` o `cortado` (puede seguir una nota). `Responde` es `red`, `precalculado`, `ejemplo` o `nada`. El orden de las filas es el orden en pantalla.
+- `## Los cinco casos`: una tabla con las columnas `Caso | Motor | Datos | Simulador | Red | Sello | En la app | Método lento | Responde` (el panel las busca por nombre, no por posición), una fila por caso (`leyes`, `taludes`, `flotacion`, `flota`, `sismicidad`). Cada etapa empieza con `listo`, `en curso`, `pendiente`, `no pasa` o `cortado` (puede seguir una nota). `Responde` es `red`, `precalculado`, `ejemplo` o `nada`. El orden de las filas es el orden en pantalla.
 - `## Semáforo`: tabla `Rol | Estado | Nota`; el rol empieza con `producto`, `amortizacion` o `seguimiento`, y el estado lleva 🟢, 🟡 o 🔴.
 - `## Siguiente tarea …`: una viñeta por computador que empieza con `**PC 1 · producto:**`.
 

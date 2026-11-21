@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
 <title>Krylov · Tablero</title>
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
@@ -22,99 +23,94 @@
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
-main{max-width:1280px;margin:0 auto;padding:16px}
-h1{font-size:20px;margin:0}
-h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:24px 0 8px}
-h3{font-size:14px;margin:0 0 6px}
-a{color:var(--info)}
-code{font-size:12px;background:var(--bg);padding:1px 4px;border-radius:4px}
-.top{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
-.sync{color:var(--mute);font-size:12px}
-.sync button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:3px 10px;cursor:pointer}
-.clocks{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:14px}
-.clock{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-.clock .k{font-size:12px;color:var(--mute)}
-.clock .v{font-size:22px;font-weight:650;font-variant-numeric:tabular-nums}
-.alerts{display:flex;flex-direction:column;gap:6px}
-.alert{border-radius:8px;padding:7px 10px;font-size:13px}
+main{max-width:1180px;margin:0 auto;padding:16px}
+h1{font-size:18px;margin:0}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:20px 0 8px}
+code{font-size:12px}
+.top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.sync{color:var(--mute);font-size:12px;display:flex;gap:8px;align-items:center}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block}
+.dot.busy{background:var(--info)} .dot.slow{background:var(--warn)} .dot.off{background:var(--bad)}
+.sync button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:2px 9px;cursor:pointer}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+@media (max-width:700px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.tile .k{font-size:11px;color:var(--mute)}
+.tile .v{font-size:19px;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}
+.alerts{display:flex;flex-direction:column;gap:5px;margin-top:12px}
+.alert{border-radius:7px;padding:5px 10px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .alert.bad{background:var(--badbg)} .alert.warn{background:var(--warnbg)} .alert.info{background:var(--infobg)}
-.roles{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px}
-.role{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;border-top:4px solid var(--line)}
+.roles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media (max-width:900px){.roles{grid-template-columns:1fr}}
+.role{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;border-top:4px solid var(--line);transition:box-shadow .4s}
 .role.ok{border-top-color:var(--ok)} .role.warn{border-top-color:var(--warn)} .role.bad{border-top-color:var(--bad)}
-.role .head{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
-.role .sem{font-size:13px;margin:4px 0 8px}
-.role .meta{font-size:12px;color:var(--mute)}
-.role .sec{margin-top:10px}
-.role .sec b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--mute);margin-bottom:2px}
-.role ul{margin:0;padding-left:16px} .role li{margin:2px 0}
-.role .sec table{font-size:12px}
-.next{background:var(--infobg);border-radius:8px;padding:6px 8px;margin-top:8px;font-size:13px}
+.role.flash{box-shadow:0 0 0 3px var(--info)}
+.role .head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.role .head b{font-size:15px}
+.role .sem{font-size:13px;white-space:nowrap}
+.row{display:grid;grid-template-columns:64px 1fr;gap:6px;margin-top:6px;font-size:13px}
+.row .k{color:var(--mute);font-size:12px;padding-top:1px}
+.prog{height:6px;border-radius:3px;background:var(--line);margin-top:4px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--info)}
+.role .meta{font-size:12px;color:var(--mute);margin-top:8px}
+details{margin-top:8px;font-size:12.5px}
+details summary{cursor:pointer;color:var(--mute);font-size:12px}
+details ul{margin:4px 0 0;padding-left:16px} details li{margin:2px 0}
 .gantt{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;overflow-x:auto}
-.gin{position:relative;min-width:900px}
-.gaxis{position:relative;height:18px;margin-left:90px;font-size:11px;color:var(--mute)}
+.gin{position:relative;min-width:860px}
+.gaxis{position:relative;height:18px;margin-left:56px;font-size:11px;color:var(--mute)}
 .gaxis span{position:absolute;transform:translateX(-50%)}
-.grow{display:flex;align-items:center;height:30px;border-top:1px solid var(--line)}
-.grow .lab{width:90px;flex:none;font-size:12px;color:var(--mute)}
+.grow{display:flex;align-items:center;height:28px;border-top:1px solid var(--line)}
+.grow .lab{width:56px;flex:none;font-size:12px;color:var(--mute)}
 .grow .track{position:relative;flex:1;height:100%}
-.bar{position:absolute;top:5px;height:20px;border-radius:4px;font-size:10.5px;line-height:20px;padding:0 4px;overflow:hidden;white-space:nowrap;color:#fff;cursor:default}
-.bar.hecha{background:var(--done)} .bar.curso{background:var(--info)} .bar.ahora{background:var(--info);opacity:.75}
+.bar{position:absolute;top:5px;height:18px;border-radius:4px;font-size:10px;line-height:18px;padding:0 3px;overflow:hidden;white-space:nowrap;color:#fff}
+.bar.hecha{background:var(--done)} .bar.curso,.bar.ahora{background:var(--info)}
 .bar.pasada{background:var(--warn)} .bar.atrasada{background:var(--bad)} .bar.pendiente{background:transparent;color:var(--mute);border:1px dashed var(--mute)}
-.vline{position:absolute;top:0;bottom:0;width:0;border-left:2px solid var(--bad);z-index:2}
+.vline{position:absolute;top:0;bottom:0;border-left:2px solid var(--bad);z-index:2}
 .vline.h{border-left:1px dashed var(--mute);z-index:1}
 .vline .t{position:absolute;top:-16px;left:3px;font-size:10px;color:var(--bad);white-space:nowrap}
 .vline.h .t{color:var(--mute)}
-.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:12px;color:var(--mute);margin-top:8px}
-.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
-.night{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;font-size:12px}
-.chip{border-radius:999px;padding:2px 9px;border:1px solid var(--line)}
-.chip.hecha{background:var(--okbg)} .chip.curso{background:var(--infobg)}
-.two{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:12px}
-@media (max-width:860px){.two{grid-template-columns:1fr}}
-.md,.feed{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 16px 12px}
-.md h2{font-size:15px;text-transform:none;letter-spacing:0;color:var(--ink);margin:16px 0 6px}
-.md table,.role table{border-collapse:collapse;width:100%;display:block;overflow-x:auto}
-.md td,.md th,.role td,.role th{border:1px solid var(--line);padding:4px 6px;text-align:left;vertical-align:top}
-.feed ol{list-style:none;margin:0;padding:0}
-.feed li{padding:7px 0;border-bottom:1px solid var(--line);font-size:13px}
-.feed .when{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums}
-.tag{display:inline-block;font-size:10.5px;border-radius:4px;padding:0 5px;margin-right:4px;color:#fff}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--mute);margin-top:8px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.feed{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 14px}
+.feed div{padding:5px 0;border-bottom:1px solid var(--line);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feed div:last-child{border-bottom:0}
+.feed .when{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums;margin-right:6px}
+.tag{display:inline-block;font-size:10px;border-radius:4px;padding:0 5px;margin-right:6px;color:#fff;vertical-align:1px}
 .tag.producto{background:#8b5cf6}.tag.amortizacion{background:#0e9f9a}.tag.seguimiento{background:#e07a1f}.tag.otro{background:var(--done)}
-.err{color:var(--bad)}
-footer{color:var(--mute);font-size:12px;margin:24px 0}
+.full{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 14px;margin-top:20px}
+.full .md h2{font-size:14px;text-transform:none;letter-spacing:0;color:var(--ink)}
+.full table{border-collapse:collapse;display:block;overflow-x:auto}
+.full td,.full th{border:1px solid var(--line);padding:3px 6px;text-align:left;vertical-align:top}
 </style>
 </head>
 <body>
 <main>
   <div class="top">
     <h1>Krylov · cómo vamos</h1>
-    <div class="sync"><span id="sync">Cargando…</span> <button id="btn">Actualizar</button></div>
+    <div class="sync"><span class="dot busy" id="dot"></span><span id="sync">Cargando…</span><button id="btn" title="Revisar ahora">↻</button></div>
   </div>
-  <div class="clocks" id="clocks"></div>
-
-  <h2>Alertas</h2>
+  <div class="tiles" id="tiles"></div>
   <div class="alerts" id="alerts"></div>
 
   <h2>Los tres computadores</h2>
   <div class="roles" id="roles"></div>
 
-  <h2>Plan del sábado (WORKPLAN)</h2>
+  <h2>Plan del sábado</h2>
   <div class="gantt"><div class="gin" id="gantt"></div>
     <div class="legend">
       <span><i style="background:var(--done)"></i>hecha</span>
-      <span><i style="background:var(--info)"></i>en curso / toca ahora</span>
-      <span><i style="background:var(--warn)"></i>pasada de su hora</span>
-      <span><i style="background:var(--bad)"></i>atrasada: más del doble de su duración (regla de corte)</span>
+      <span><i style="background:var(--info)"></i>en curso</span>
+      <span><i style="background:var(--warn)"></i>pasada de hora</span>
+      <span><i style="background:var(--bad)"></i>atrasada (más del doble: cortar o simplificar)</span>
       <span><i style="border:1px dashed var(--mute)"></i>pendiente</span>
     </div>
-    <div class="night" id="night"></div>
   </div>
 
-  <div class="two">
-    <div><h2>Tablero (estado/TABLERO.md)</h2><div class="md" id="tablero"></div></div>
-    <div><h2>Últimos commits</h2><div class="feed" id="feed"></div></div>
-  </div>
+  <h2>Últimos commits</h2>
+  <div class="feed" id="feed"></div>
 
-  <footer>Lee el repositorio público <a id="repolink" target="_blank" rel="noopener"></a> cada 3 minutos: <code>estado/*.md</code>, <code>WORKPLAN.md</code> y los commits. Solo lectura. Hora de Santiago.</footer>
+  <details class="full"><summary>Tablero completo (estado/TABLERO.md)</summary><div class="md" id="tablero"></div></details>
 </main>
 
 <script>
@@ -126,7 +122,7 @@ const ROLES = [
   {id:'seguimiento', pc:'PC 3', pre:'S', file:'estado/seguimiento.md'},
 ];
 const DAY0 = Date.parse('2026-11-21T00:00:00-03:00'); // sábado 00:00, Santiago (UTC-3)
-const toMin = s => { const m = /^(\d{1,2}):(\d{2})$/.exec((s||'').trim()); return m ? +m[1]*60 + +m[2] : null; };
+const toMin = s => { const m = /(\d{1,2}):(\d{2})/.exec(s||''); return m ? +m[1]*60 + +m[2] : null; };
 const fmt = m => String(Math.floor(m/60)%24).padStart(2,'0') + ':' + String(Math.round(m%60)).padStart(2,'0');
 
 function sections(md){
@@ -142,7 +138,16 @@ function sections(md){
 const bullets = txt => (txt||'').split('\n').filter(l => /^\s*-\s+/.test(l)).map(l => l.replace(/^\s*-\s+/,''));
 const isEmpty = txt => { const b = bullets(txt); return b.length === 0 || b.every(x => /^\(?ninguno\)?/i.test(x.trim())); };
 
-// IDs mencionados en un texto, expandiendo rangos tipo "A-01 a A-04" o "A-B1 a A-B4"
+// Una línea larga de markdown → una frase corta: sin hora, sin formato, hasta el primer punto, máx. n caracteres.
+function short(s, n = 90){
+  let t = (s||'').replace(/^[a-záéíóú]{3}\s+\d{1,2}:\d{2}\s*·\s*/i, '')
+                 .replace(/\*\*|`|\*/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').trim();
+  t = t.split(/\.\s+(?=[A-ZÁÉÍÓÚ¿(])/)[0].replace(/\.$/, '');
+  if (t.length > n) t = t.slice(0, n).replace(/\s+\S*$/, '') + '…';
+  return t;
+}
+const timeOf = s => (/^[a-záéíóú]{3}\s+(\d{1,2}:\d{2})/i.exec(s||'') || [])[1] || '';
+
 function mentionedIds(txt){
   const ids = new Set();
   const re = /\b([PAS])-([A-Z]?)(\d+)\b(?:\s*(?:a|al|-|–)\s*\1-\2(\d+)\b)?/g;
@@ -153,9 +158,7 @@ function mentionedIds(txt){
   }
   return ids;
 }
-
-// Una tarea está hecha si su id aparece en el sujeto de una línea de «Hecho»
-// (antes del primer punto o dos puntos), no en cualquier parte: «no existen todavía (A-N2)» no cuenta.
+// Hecha = el id aparece en el sujeto de una línea de «Hecho» (antes del primer punto o dos puntos).
 function doneIds(hecho){
   const ids = new Set();
   for (const b of bullets(hecho)){
@@ -164,13 +167,12 @@ function doneIds(hecho){
   }
   return ids;
 }
-
 function parseTasks(workplan){
   const tasks = [];
   for (const line of workplan.split('\n')){
     const m = /^\|\s*([PAS]-[A-Z0-9]+)\s*\|([^|]*)\|([^|]*)\|([^|]*)\|/.exec(line);
     if (!m) continue;
-    const when = m[2].trim(), start = toMin(when), dur = parseInt(m[3]) || null;
+    const when = m[2].trim(), start = /^\d{1,2}:\d{2}$/.test(when) ? toMin(when) : null, dur = parseInt(m[3]) || null;
     const desc = (start === null && when.length > 12 ? when : m[4]).replace(/\*\*|`|\*/g,'').trim();
     tasks.push({id:m[1], when, start, dur, desc, night: start === null});
   }
@@ -187,7 +189,6 @@ function parseHitos(workplan){
   if (d) list.push({id:'dormir', t:toMin(d[1]), q:'Antes de dormir'});
   return list.filter(x => x.t !== null).sort((a,b) => a.t - b.t);
 }
-
 function status(task, done, inProgress, now){
   if (done.has(task.id)) return 'hecha';
   if (inProgress.has(task.id)) return 'curso';
@@ -198,11 +199,21 @@ function status(task, done, inProgress, now){
   if (now >= task.start) return 'ahora';
   return 'pendiente';
 }
-
+// Tabla «Entrenamiento en curso» → {motor, desde, hasta}
+function training(txt){
+  if (!txt) return null;
+  const rows = {};
+  for (const l of txt.split('\n')){ const c = l.split('|').map(x => x.trim()); if (c.length > 3) rows[c[1]] = c[2]; }
+  const motorK = Object.keys(rows).find(k => /^Motor/.test(k)), inicioK = Object.keys(rows).find(k => /^Hora de inicio/.test(k));
+  const motor = (/`([^`]+)`/.exec(rows[motorK]||'') || [])[1];
+  if (!motor) return null;
+  const desde = toMin(rows[inicioK]);
+  const hasta = toMin((/--hasta\s+(\d{1,2}:\d{2})/.exec(txt) || [])[1] || (/hasta las (\d{1,2}:\d{2})/.exec(txt) || [])[1]);
+  return {motor, desde, hasta};
+}
 function commitRole(c, learned){
-  const msg = c.commit.message.split('\n')[0];
-  const name = c.commit.author.name;
-  let m = /^estado\s+(producto|amortizacion|seguimiento)\b/i.exec(msg);
+  const msg = c.commit.message.split('\n')[0], name = c.commit.author.name;
+  const m = /^estado\s+(producto|amortizacion|seguimiento)\b/i.exec(msg);
   if (m){ learned[name] = m[1].toLowerCase(); return learned[name]; }
   if (/^(ronda|H\d\b|tablero|hito)/i.test(msg)) return 'seguimiento';
   return learned[name] || null;
@@ -210,162 +221,200 @@ function commitRole(c, learned){
 // PARSE-END
 
 const $ = id => document.getElementById(id);
-const md = s => DOMPurify.sanitize(marked.parse(s||''));
-const mdi = s => DOMPurify.sanitize(marked.parseInline(s||''));
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nowMin = () => (Date.now() - DAY0) / 60000;
 const ago = ms => { const m = Math.round((Date.now()-ms)/60000); return m < 1 ? 'recién' : m < 60 ? `hace ${m} min` : `hace ${Math.floor(m/60)} h ${m%60} min`; };
+const hhmm = ms => new Date(ms).toLocaleTimeString('es-CL',{timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit'});
 const sleeping = n => n >= toMin('05:15') && n < toMin('08:15');
 
-let lastSync = 0, nextSync = 0, data = null;
-// Token opcional de GitHub (solo lectura) para no chocar con el límite de 60 consultas por hora por red:
-// abrir una vez la página con #token=XXXX; queda guardado en este navegador y se borra de la URL.
+// ---- Sincronización: solo se recarga cuando hay un commit nuevo ----
+// Cada cierto tiempo se pregunta a GitHub por el último commit (respuesta de 40 caracteres).
+// Si cambió, se leen los archivos de ese commit y se redibuja. Si no, no se hace nada.
+// Pestaña oculta: no pregunta. Al volver a la pestaña: pregunta al tiro.
+// Token opcional (#token=… una vez; queda en este navegador) para no chocar con el límite de 60/h por red.
 let TOKEN = '';
 try{
   const m = /token=([\w-]+)/.exec(location.hash);
   if (m){ localStorage.setItem('gh_token', m[1]); history.replaceState(null, '', location.pathname); }
   TOKEN = localStorage.getItem('gh_token') || '';
 }catch(e){}
-const PERIOD = 180e3;
-$('repolink').href = 'https://github.com/' + REPO; $('repolink').textContent = REPO;
+const AUTH = TOKEN ? {Authorization: 'Bearer ' + TOKEN} : {};
+let data = null, sha = null, lastCheck = 0, nextCheck = 0, rate = null, checking = false, unseen = 0;
+const interval = () => TOKEN ? 20e3 : (rate !== null && rate < 15 ? 300e3 : 90e3);
 
-async function load(){
-  $('sync').textContent = 'Sincronizando…';
-  let commits = null, sha = 'main', rate = '';
+async function check(force){
+  if (checking) return; checking = true;
+  $('dot').className = 'dot busy';
   try{
-    const r = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=40`, {cache:'no-cache', headers: TOKEN ? {Authorization: 'Bearer ' + TOKEN} : {}});
-    rate = r.headers.get('x-ratelimit-remaining');
-    if (r.ok){ commits = await r.json(); sha = commits[0]?.sha || 'main'; }
+    const r = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, {cache:'no-cache', headers:{Accept:'application/vnd.github.sha', ...AUTH}});
+    const rem = r.headers.get('x-ratelimit-remaining'); if (rem !== null) rate = +rem;
+    if (!r.ok) throw new Error(r.status);
+    const s = (await r.text()).trim();
+    lastCheck = Date.now();
+    if (s !== sha || force) await load(s, sha !== null && s !== sha);
+  }catch(e){
+    lastCheck = Date.now();
+    if (!data) await load('main', false); // sin API: se leen los archivos igual (con hasta 5 min de atraso)
+  }
+  checking = false;
+  nextCheck = Date.now() + interval();
+  render(); tick();
+}
+
+async function load(newSha, isNew){
+  let commits = null;
+  try{
+    const r = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=30`, {cache:'no-cache', headers:AUTH});
+    if (r.ok) commits = await r.json();
   }catch(e){}
-  const raw = p => fetch(`https://raw.githubusercontent.com/${REPO}/${sha}/${p}`, {cache: sha==='main' ? 'no-cache' : 'default'})
+  const ref = commits?.[0]?.sha || newSha;
+  const raw = p => fetch(`https://raw.githubusercontent.com/${REPO}/${ref}/${p}`, {cache: ref==='main' ? 'no-cache' : 'default'})
                     .then(r => r.ok ? r.text() : '').catch(() => '');
   const [tablero, workplan, ...estados] = await Promise.all(['estado/TABLERO.md','WORKPLAN.md', ...ROLES.map(r => r.file)].map(raw));
-  data = {commits, sha, rate, tablero, workplan, estados};
-  lastSync = Date.now(); nextSync = lastSync + PERIOD;
-  render();
+  const prevTop = data?.commits?.[0]?.sha;
+  data = {commits, tablero, workplan, estados};
+  sha = ref;
+  if (isNew && commits){
+    const fresh = []; for (const c of commits){ if (c.sha === prevTop) break; fresh.push(c); }
+    data.fresh = new Set(fresh.map(c => c.sha));
+    if (document.hidden){ unseen += fresh.length || 1; document.title = `(${unseen}) Krylov · Tablero`; }
+  }
 }
 
 function render(){
   if (!data) return;
-  const {commits, sha, tablero, workplan, estados} = data;
+  const {commits, tablero, workplan, estados} = data;
   const now = nowMin();
   const tabSec = sections(tablero);
   const est = estados.map(sections);
 
-  // Semáforo del tablero
   const sem = {};
   for (const line of (tabSec['Semáforo']||'').split('\n')){
     const c = line.split('|').map(x => x.trim());
     const r = ROLES.find(r => c[1] && c[1].toLowerCase().startsWith(r.id));
     if (r) sem[r.id] = {estado:c[2], nota:c[3], cls: /🔴/.test(c[2]) ? 'bad' : /🟡|🟠/.test(c[2]) ? 'warn' : /🟢/.test(c[2]) ? 'ok' : ''};
   }
+  const sig = {};
+  for (const b of bullets(tabSec['Siguiente tarea de cada uno'])){
+    const r = ROLES.find(r => b.includes(r.pc));
+    if (r) sig[r.id] = b.replace(/^\*\*[^*]*\*\*\s*/, '');
+  }
 
-  // Tareas
   const done = new Set(), prog = new Set();
-  est.forEach(s => { for (const id of doneIds(s['Hecho'])) done.add(id); for (const id of mentionedIds(s['En curso'])) prog.add(id); });
+  est.forEach(s => { doneIds(s['Hecho']).forEach(id => done.add(id)); mentionedIds(s['En curso']).forEach(id => prog.add(id)); });
   const tasks = parseTasks(workplan).map(t => ({...t, st: status(t, done, prog, now)}));
   const hitos = parseHitos(workplan);
 
-  // Commits por rol
   const learned = {}, lastByRole = {};
   const cs = (commits||[]).slice().reverse().map(c => ({c, role: null}));
   cs.forEach(x => x.role = commitRole(x.c, learned));
   cs.forEach(x => { if (!x.role) x.role = learned[x.c.commit.author.name] || null; });
   cs.reverse();
   for (const x of cs) if (x.role && !lastByRole[x.role]) lastByRole[x.role] = Date.parse(x.c.commit.committer.date);
+  const freshRoles = new Set(cs.filter(x => data.fresh?.has(x.c.sha)).map(x => x.role));
 
-  // Relojes
-  const updated = /\*\*Actualizado:\*\*\s*([^·\n]+)/.exec(tablero)?.[1]?.trim() || '—';
-  const hito = /\*\*Hito vigente:\*\*\s*([^\n]+?)\s*·\s*\*\*/.exec(tablero)?.[1] || '';
+  // Indicadores
+  const updated = /\*\*Actualizado:\*\*\s*([^·\n]+)/.exec(tablero)?.[1]?.trim() || '';
+  const tu = toMin(updated);
   const nextH = hitos.find(h => h.t > now);
-  $('clocks').innerHTML = [
-    ['Hora en Santiago', new Date().toLocaleTimeString('es-CL',{timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit'})],
-    ['Producto terminado · sáb 18:00', cd(Date.parse('2026-11-21T18:00:00-03:00'))],
-    ['Entrega · dom 08:30', cd(Date.parse('2026-11-22T08:30:00-03:00'))],
-    ['Próximo hito', nextH ? `${nextH.id === 'dormir' ? 'Dormir' : nextH.id} · ${fmt(nextH.t)}` : '—', nextH ? `en ${Math.round(nextH.t-now)} min${nextH.q ? ' · '+nextH.q : ''}` : ''],
-    ['Tablero actualizado', updated, hito],
-  ].map(([k,v,s]) => `<div class="clock"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div>${s?`<div class="k">${mdi(s)}</div>`:''}</div>`).join('');
+  $('tiles').innerHTML = [
+    ['Producto terminado (sáb 18:00)', `<span data-cd="2026-11-21T18:00:00-03:00"></span>`],
+    ['Entrega (dom 08:30)', `<span data-cd="2026-11-22T08:30:00-03:00"></span>`],
+    [nextH ? `Próximo: ${nextH.id === 'dormir' ? 'dormir' : nextH.id} a las ${fmt(nextH.t)}` : 'Hitos', nextH ? `en ${Math.round(nextH.t-now)} min` : 'listos'],
+    ['Tablero de PC 3', tu !== null ? `hace ${Math.max(0, Math.round(now - tu))} min` : '—'],
+  ].map(([k,v]) => `<div class="tile"><div class="k">${esc(k)}</div><div class="v">${v}</div></div>`).join('');
 
-  // Alertas
+  // Alertas: una línea cada una
   const al = [];
-  if (!commits) al.push(['warn', `No se pudo leer la lista de commits de GitHub${data.rate==='0'?' (límite de 60 consultas por hora de esta red; abrir la página con #token=… de un token de GitHub de solo lectura)':''}. Los archivos se leen igual, con hasta 5 minutos de atraso.`]);
   ROLES.forEach((r,i) => {
     const s = est[i];
-    if (!isEmpty(s['Bloqueos'])) al.push(['bad', `<b>${r.pc} · ${r.id} bloqueado:</b> ${bullets(s['Bloqueos']).map(mdi).join(' · ')}`]);
-    if (!isEmpty(s['Pedidos a otros'])) al.push(['info', `<b>${r.pc} pide:</b> ${mdi(bullets(s['Pedidos a otros']).slice(-1)[0])}`]);
+    if (!isEmpty(s['Bloqueos'])) al.push(['bad', `${r.pc} bloqueado: ${short(bullets(s['Bloqueos'])[0], 110)}`]);
     const lc = lastByRole[r.id];
-    if (commits && lc && (Date.now()-lc) > 45*60e3 && !sleeping(now)) al.push(['warn', `${r.pc} · ${r.id}: sin commits ${ago(lc)}.`]);
+    if (commits && lc && (Date.now()-lc) > 45*60e3 && !sleeping(now)) al.push(['warn', `${r.pc} sin commits ${ago(lc)}`]);
   });
-  const tu = toMin(/(\d{1,2}:\d{2})/.exec(updated)?.[1]);
-  if (tu !== null && now - tu > 30 && !sleeping(now)) al.push(['warn', `El tablero no se actualiza hace ${Math.round(now-tu)} min (lo escribe PC 3 en cada ronda).`]);
-  tasks.filter(t => t.st === 'atrasada').forEach(t => al.push(['bad', `<b>${t.id}</b> atrasada: debía partir ${t.when} y durar ${t.dur} min. Regla de corte: se corta o se simplifica. <span class="sync">${esc(t.desc.slice(0,110))}</span>`]));
-  $('alerts').innerHTML = al.length ? al.map(([c,h]) => `<div class="alert ${c}">${h}</div>`).join('') : '<div class="alert info">Sin alertas.</div>';
+  if (tu !== null && now - tu > 30 && !sleeping(now)) al.push(['warn', `Tablero sin actualizar hace ${Math.round(now-tu)} min`]);
+  tasks.filter(t => t.st === 'atrasada').forEach(t => al.push(['bad', `${t.id} atrasada (desde ${t.when}, ${t.dur} min): ${short(t.desc, 80)}`]));
+  $('alerts').innerHTML = al.map(([c,h]) => `<div class="alert ${c}" title="${esc(h)}">${esc(h)}</div>`).join('');
 
-  // Tarjetas por rol
+  // Tarjetas
   $('roles').innerHTML = ROLES.map((r,i) => {
     const s = est[i], sm = sem[r.id] || {};
-    const persona = /Persona:\s*([^·\n]+)/.exec(estados[i])?.[1]?.trim() || '';
-    const next = tasks.filter(t => t.id.startsWith(r.pre+'-') && !t.night && !['hecha'].includes(t.st)).sort((a,b) => a.start-b.start)[0];
+    const persona = /Persona:\s*([^·\n]+)/.exec(estados[i])?.[1]?.trim().replace(/^\[.*\]$/, '') || '';
+    const curso = bullets(s['En curso']).slice(-2);
+    const tr = training(s['Entrenamiento en curso']);
+    const nextPlan = tasks.filter(t => t.id.startsWith(r.pre+'-') && !t.night && t.st !== 'hecha').sort((a,b) => a.start-b.start)[0];
     const lc = lastByRole[r.id];
-    const sec = (title, html) => html ? `<div class="sec"><b>${title}</b>${html}</div>` : '';
-    const list = arr => arr.length ? `<ul>${arr.map(x => `<li>${mdi(x)}</li>`).join('')}</ul>` : '';
-    const train = s['Entrenamiento en curso'];
-    return `<div class="role ${sm.cls||''}">
-      <div class="head"><h3>${r.pc} · ${r.id}</h3><span class="meta">${esc(persona)}</span></div>
-      <div class="sem">${esc(sm.estado||'sin semáforo')} ${sm.nota ? '· '+mdi(sm.nota) : ''}</div>
-      <div class="meta">Último commit: ${lc ? ago(lc) + ' (' + new Date(lc).toLocaleTimeString('es-CL',{timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit'}) + ')' : '—'}</div>
-      ${next ? `<div class="next">Siguiente en el plan: <b>${next.id}</b> (${next.when}, ${next.dur} min) · ${esc(next.desc.slice(0,120))}</div>` : ''}
-      ${sec('En curso', list(bullets(s['En curso'])))}
-      ${isEmpty(s['Bloqueos']) ? '' : sec('Bloqueos', list(bullets(s['Bloqueos'])))}
-      ${train ? sec('Entrenamiento en curso', md(train.split('\n').filter(l => /^\|/.test(l)).filter((l,j) => j < 2 || /^\|\s*(Motor|Hora de inicio)/.test(l)).join('\n'))) : ''}
-      ${sec('Últimos hechos', list(bullets(s['Hecho']).slice(-4).reverse()))}
+    const row = (k, v) => v ? `<div class="row"><div class="k">${k}</div><div>${v}</div></div>` : '';
+    let trHtml = '';
+    if (tr){
+      const p = tr.desde !== null && tr.hasta !== null ? Math.min(100, Math.max(0, (now - tr.desde) / (tr.hasta - tr.desde) * 100)) : null;
+      trHtml = row('Entrena', `<b>${esc(tr.motor)}</b> ${tr.desde!==null?fmt(tr.desde):''} → ${tr.hasta!==null?fmt(tr.hasta):'?'}${p!==null ? `<div class="prog"><i style="width:${p.toFixed(0)}%"></i></div>` : ''}`);
+    }
+    const hechos = bullets(s['Hecho']).slice(-4).reverse();
+    const pedidos = isEmpty(s['Pedidos a otros']) ? [] : bullets(s['Pedidos a otros']).slice(-3);
+    return `<div class="role ${sm.cls||''} ${freshRoles.has(r.id) ? 'flash' : ''}">
+      <div class="head"><b>${r.pc} · ${r.id}</b><span class="sem">${esc(sm.estado||'')}</span></div>
+      ${row('Ahora', curso.map(x => esc(short(x, 85))).join('<br>'))}
+      ${row('Sigue', esc(sig[r.id] ? short(sig[r.id], 85) : nextPlan ? `${nextPlan.id} · ${short(nextPlan.desc, 70)}` : ''))}
+      ${trHtml}
+      <div class="meta">${persona ? esc(persona) + ' · ' : ''}último commit ${lc ? ago(lc) : '—'}</div>
+      <details><summary>Más</summary>
+        ${hechos.length ? `<b>Hecho</b><ul>${hechos.map(x => `<li>${esc(timeOf(x))} ${esc(short(x, 100))}</li>`).join('')}</ul>` : ''}
+        ${pedidos.length ? `<b>Pide</b><ul>${pedidos.map(x => `<li>${esc(short(x, 100))}</li>`).join('')}</ul>` : ''}
+        ${sm.nota ? `<b>Nota del tablero</b><ul><li>${esc(short(sm.nota, 140))}</li></ul>` : ''}
+      </details>
     </div>`;
   }).join('');
 
-  // Gantt
+  // Línea de tiempo
   const T0 = toMin('03:00'), T1 = toMin('18:30'), pct = m => ((m - T0) / (T1 - T0) * 100).toFixed(2) + '%';
   let g = '<div class="gaxis">';
   for (let h = 3; h <= 18; h++) g += `<span style="left:${pct(h*60)}">${String(h).padStart(2,'0')}</span>`;
   g += '</div><div style="position:relative">';
   ROLES.forEach(r => {
-    g += `<div class="grow"><div class="lab">${r.pc} · ${r.id.slice(0,5)}.</div><div class="track">`;
+    g += `<div class="grow"><div class="lab">${r.pc}</div><div class="track">`;
     tasks.filter(t => t.id.startsWith(r.pre+'-') && !t.night).forEach(t => {
       const w = Math.max(t.dur || 20, 6);
-      g += `<div class="bar ${t.st}" style="left:${pct(t.start)};width:calc(${((w)/(T1-T0)*100).toFixed(2)}% - 2px)" title="${esc(t.id+' · '+t.when+' · '+(t.dur||'?')+' min · '+t.st+'\n'+t.desc)}">${t.id}</div>`;
+      g += `<div class="bar ${t.st}" style="left:${pct(t.start)};width:calc(${(w/(T1-T0)*100).toFixed(2)}% - 2px)" title="${esc(t.id+' · '+t.when+' · '+(t.dur||'?')+' min\n'+short(t.desc, 160))}">${t.id}</div>`;
     });
     g += '</div></div>';
   });
-  g += '<div style="position:absolute;inset:0 0 0 90px;pointer-events:none">';
+  g += '<div style="position:absolute;inset:0 0 0 56px;pointer-events:none">';
   hitos.forEach(h => g += `<div class="vline h" style="left:${pct(h.t)}"><span class="t">${h.id==='dormir'?'zzz':h.id}</span></div>`);
-  if (now > T0 && now < T1) g += `<div class="vline" style="left:${pct(now)}"><span class="t">ahora ${fmt(now)}</span></div>`;
+  if (now > T0 && now < T1) g += `<div class="vline" style="left:${pct(now)}"><span class="t">${fmt(now)}</span></div>`;
   g += '</div></div>';
   $('gantt').innerHTML = g;
-  $('night').innerHTML = '<span class="sync">Noche (agentes solos):</span>' + tasks.filter(t => t.night).map(t =>
-    `<span class="chip ${t.st}" title="${esc(t.desc)}">${t.st==='hecha'?'✓ ':''}${t.id}</span>`).join('');
 
-  // Tablero completo, sin el título ni el semáforo (ya están arriba)
-  const tabMd = tablero.replace(/^#\s.*\n/, '').replace(/^## Semáforo[\s\S]*?(?=^## )/m, '');
-  $('tablero').innerHTML = tablero ? md(tabMd) : '<p class="err">No se pudo leer estado/TABLERO.md</p>';
-
-  // Commits
-  $('feed').innerHTML = commits ? '<ol>' + cs.slice(0,25).map(({c, role}) => {
+  // Commits: una línea cada uno
+  $('feed').innerHTML = commits ? cs.slice(0,8).map(({c, role}) => {
     const t = Date.parse(c.commit.committer.date);
-    return `<li><span class="tag ${role||'otro'}">${role ? ROLES.find(r => r.id===role).pc : '—'}</span><a href="${c.html_url}" target="_blank" rel="noopener">${esc(c.commit.message.split('\n')[0])}</a><div class="when">${new Date(t).toLocaleTimeString('es-CL',{timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit'})} · ${esc(c.commit.author.name)} · ${ago(t)}</div></li>`;
-  }).join('') + '</ol>' : '<p class="err">Lista de commits no disponible.</p>';
+    return `<div title="${esc(c.commit.message.split('\n')[0])}"><span class="when">${hhmm(t)}</span><span class="tag ${role||'otro'}">${role ? ROLES.find(r => r.id===role).pc : '—'}</span>${esc(c.commit.message.split('\n')[0])}</div>`;
+  }).join('') : '<div>Lista de commits no disponible (límite de GitHub para esta red).</div>';
 
-  tick();
+  const tabMd = tablero.replace(/^#\s.*\n/, '');
+  $('tablero').innerHTML = DOMPurify.sanitize(marked.parse(tabMd || '_No se pudo leer._'));
 }
 
-function cd(t){ const s = Math.max(0, Math.round((t - Date.now())/1000)); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), ss = s%60;
-  return `${h} h ${String(m).padStart(2,'0')} min ${String(ss).padStart(2,'0')} s`; }
+function cd(t){ const s = Math.max(0, Math.round((t - Date.now())/1000)); return `${Math.floor(s/3600)} h ${String(Math.floor(s%3600/60)).padStart(2,'0')} min`; }
 function tick(){
-  if (lastSync) $('sync').textContent = `Sincronizado ${new Date(lastSync).toLocaleTimeString('es-CL',{timeZone:'America/Santiago'})} · commit ${data.sha.slice(0,7)} · próxima en ${Math.max(0,Math.round((nextSync-Date.now())/1000))} s`;
-  document.querySelectorAll('.clock .v').forEach((el,i) => { if (i===1) el.textContent = cd(Date.parse('2026-11-21T18:00:00-03:00')); if (i===2) el.textContent = cd(Date.parse('2026-11-22T08:30:00-03:00')); });
+  document.querySelectorAll('[data-cd]').forEach(el => el.textContent = cd(Date.parse(el.dataset.cd)));
+  if (!lastCheck) return;
+  const slow = !TOKEN && rate !== null && rate < 15;
+  $('dot').className = 'dot ' + (checking ? 'busy' : document.hidden ? 'off' : slow ? 'slow' : '');
+  $('sync').textContent = data
+    ? `al día con ${sha && sha !== 'main' ? sha.slice(0,7) : 'main'}` +
+      (data.commits?.[0] ? ` (commit ${ago(Date.parse(data.commits[0].commit.committer.date))})` : '') +
+      ` · revisado ${ago(lastCheck)}` + (slow ? ' · modo ahorro' : '')
+    : 'sin datos';
 }
-$('btn').onclick = load;
-setInterval(() => { if (Date.now() >= nextSync) load(); else tick(); }, 1000);
-setInterval(render, 60e3);
-load();
+$('btn').onclick = () => check(true);
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden){ unseen = 0; document.title = 'Krylov · Tablero'; check(); }
+});
+setInterval(() => { if (!document.hidden && Date.now() >= nextCheck) check(); }, 5e3);
+setInterval(tick, 15e3);
+setInterval(render, 60e3); // solo reloj y colores; no consulta nada
+check();
 </script>
 </body>
 </html>

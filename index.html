@@ -218,6 +218,14 @@ const ago = ms => { const m = Math.round((Date.now()-ms)/60000); return m < 1 ? 
 const sleeping = n => n >= toMin('05:15') && n < toMin('08:15');
 
 let lastSync = 0, nextSync = 0, data = null;
+// Token opcional de GitHub (solo lectura) para no chocar con el límite de 60 consultas por hora por red:
+// abrir una vez la página con #token=XXXX; queda guardado en este navegador y se borra de la URL.
+let TOKEN = '';
+try{
+  const m = /token=([\w-]+)/.exec(location.hash);
+  if (m){ localStorage.setItem('gh_token', m[1]); history.replaceState(null, '', location.pathname); }
+  TOKEN = localStorage.getItem('gh_token') || '';
+}catch(e){}
 const PERIOD = 180e3;
 $('repolink').href = 'https://github.com/' + REPO; $('repolink').textContent = REPO;
 
@@ -225,7 +233,7 @@ async function load(){
   $('sync').textContent = 'Sincronizando…';
   let commits = null, sha = 'main', rate = '';
   try{
-    const r = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=40`, {cache:'no-cache'});
+    const r = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=40`, {cache:'no-cache', headers: TOKEN ? {Authorization: 'Bearer ' + TOKEN} : {}});
     rate = r.headers.get('x-ratelimit-remaining');
     if (r.ok){ commits = await r.json(); sha = commits[0]?.sha || 'main'; }
   }catch(e){}
@@ -280,7 +288,7 @@ function render(){
 
   // Alertas
   const al = [];
-  if (!commits) al.push(['warn', `No se pudo leer la lista de commits de GitHub${data.rate==='0'?' (límite de 60 consultas por hora de esta red)':''}. Los archivos se leen igual, con hasta 5 minutos de atraso.`]);
+  if (!commits) al.push(['warn', `No se pudo leer la lista de commits de GitHub${data.rate==='0'?' (límite de 60 consultas por hora de esta red; abrir la página con #token=… de un token de GitHub de solo lectura)':''}. Los archivos se leen igual, con hasta 5 minutos de atraso.`]);
   ROLES.forEach((r,i) => {
     const s = est[i];
     if (!isEmpty(s['Bloqueos'])) al.push(['bad', `<b>${r.pc} · ${r.id} bloqueado:</b> ${bullets(s['Bloqueos']).map(mdi).join(' · ')}`]);

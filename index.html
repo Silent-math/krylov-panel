@@ -9,77 +9,104 @@
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 <style>
 :root{
-  --bg:#f6f5f2;--card:#fff;--ink:#1d1d1b;--mute:#6b6a65;--line:#e4e2dc;
-  --ok:#1f9d55;--warn:#d69e2e;--bad:#d64545;--info:#3b6fd4;--done:#9aa39d;
+  --bg:#f6f5f2;--card:#fff;--ink:#1d1d1b;--mute:#6b6a65;--line:#e4e2dc;--soft:#efede8;
+  --ok:#1f9d55;--warn:#d69e2e;--bad:#d64545;--info:#3b6fd4;--done:#9aa39d;--ahead:#1f9d55;
   --okbg:#e7f5ec;--warnbg:#fbf3e0;--badbg:#fbe9e9;--infobg:#e8effb;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#121211;--card:#1c1c1a;--ink:#ecebe7;--mute:#9b9a94;--line:#2e2e2b;
-  --okbg:#15301f;--warnbg:#33290f;--badbg:#3a1a1a;--infobg:#17243d;--done:#5d655f;
+  --bg:#121211;--card:#1c1c1a;--ink:#ecebe7;--mute:#9b9a94;--line:#2e2e2b;--soft:#242422;
+  --okbg:#15301f;--warnbg:#33290f;--badbg:#3a1a1a;--infobg:#17243d;--done:#5d655f;--ahead:#2f9e62;
 }}
 :root[data-theme="dark"]{
-  --bg:#121211;--card:#1c1c1a;--ink:#ecebe7;--mute:#9b9a94;--line:#2e2e2b;
-  --okbg:#15301f;--warnbg:#33290f;--badbg:#3a1a1a;--infobg:#17243d;--done:#5d655f;
+  --bg:#121211;--card:#1c1c1a;--ink:#ecebe7;--mute:#9b9a94;--line:#2e2e2b;--soft:#242422;
+  --okbg:#15301f;--warnbg:#33290f;--badbg:#3a1a1a;--infobg:#17243d;--done:#5d655f;--ahead:#2f9e62;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 main{max-width:1180px;margin:0 auto;padding:16px}
 h1{font-size:18px;margin:0}
-h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:20px 0 8px}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:22px 0 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+h2 small{text-transform:none;letter-spacing:0;font-weight:400}
 code{font-size:12px}
+button.lnk{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:1px 8px;cursor:pointer}
 .top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
-.sync{color:var(--mute);font-size:12px;display:flex;gap:8px;align-items:center}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block}
+.sync{color:var(--mute);font-size:12px;display:flex;gap:8px;align-items:center;min-width:0}
+.sync #sync{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block;flex:none}
 .dot.busy{background:var(--info)} .dot.slow{background:var(--warn)} .dot.off{background:var(--bad)}
-.sync button{font:inherit;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:2px 9px;cursor:pointer}
 .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
 @media (max-width:700px){.tiles{grid-template-columns:repeat(2,1fr)}}
-.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
-.tile .k{font-size:11px;color:var(--mute)}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
+.tile .k{font-size:11px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile .v{font-size:19px;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}
-.alerts{display:flex;flex-direction:column;gap:5px;margin-top:12px}
-.alert{border-radius:7px;padding:5px 10px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.alerts{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.alert{border-radius:7px;padding:4px 10px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .alert.bad{background:var(--badbg)} .alert.warn{background:var(--warnbg)} .alert.info{background:var(--infobg)}
+.alerts details{margin:0} .alerts details summary{font-size:12px;padding:0 10px}
+.alerts details .alert{margin-top:4px}
 .roles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 @media (max-width:900px){.roles{grid-template-columns:1fr}}
-.role{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;border-top:4px solid var(--line);transition:box-shadow .4s}
+.role{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;border-top:4px solid var(--line);transition:box-shadow .4s;min-width:0}
 .role.ok{border-top-color:var(--ok)} .role.warn{border-top-color:var(--warn)} .role.bad{border-top-color:var(--bad)}
 .role.flash{box-shadow:0 0 0 3px var(--info)}
 .role .head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .role .head b{font-size:15px}
 .role .sem{font-size:13px;white-space:nowrap}
-.row{display:grid;grid-template-columns:64px 1fr;gap:6px;margin-top:6px;font-size:13px}
+.row{display:grid;grid-template-columns:52px 1fr;gap:6px;margin-top:6px;font-size:13px}
 .row .k{color:var(--mute);font-size:12px;padding-top:1px}
+.row .v{min-width:0;overflow-wrap:anywhere}
 .prog{height:6px;border-radius:3px;background:var(--line);margin-top:4px;overflow:hidden}
 .prog i{display:block;height:100%;background:var(--info)}
 .role .meta{font-size:12px;color:var(--mute);margin-top:8px}
 details{margin-top:8px;font-size:12.5px}
 details summary{cursor:pointer;color:var(--mute);font-size:12px}
 details ul{margin:4px 0 0;padding-left:16px} details li{margin:2px 0}
-.gantt{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;overflow-x:auto}
-.gin{position:relative;min-width:860px}
-.gaxis{position:relative;height:18px;margin-left:56px;font-size:11px;color:var(--mute)}
-.gaxis span{position:absolute;transform:translateX(-50%)}
-.grow{display:flex;align-items:center;height:28px;border-top:1px solid var(--line)}
-.grow .lab{width:56px;flex:none;font-size:12px;color:var(--mute)}
-.grow .track{position:relative;flex:1;height:100%}
-.bar{position:absolute;top:5px;height:18px;border-radius:4px;font-size:10px;line-height:18px;padding:0 3px;overflow:hidden;white-space:nowrap;color:#fff}
-.bar.hecha{background:var(--done)} .bar.curso,.bar.ahora{background:var(--info)}
-.bar.pasada{background:var(--warn)} .bar.atrasada{background:var(--bad)} .bar.pendiente{background:transparent;color:var(--mute);border:1px dashed var(--mute)}
-.vline{position:absolute;top:0;bottom:0;border-left:2px solid var(--bad);z-index:2}
-.vline.h{border-left:1px dashed var(--mute);z-index:1}
-.vline .t{position:absolute;top:-16px;left:3px;font-size:10px;color:var(--bad);white-space:nowrap}
-.vline.h .t{color:var(--mute)}
-.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:11px;color:var(--mute);margin-top:8px}
+
+/* Plan del sábado */
+.gantt{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 0 10px}
+.gscroll{overflow-x:auto;overscroll-behavior-x:contain}
+.gin{position:relative}
+.gaxis{position:relative;height:16px;font-size:11px;color:var(--mute)}
+.gaxis span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.ghitos{position:relative;height:18px;font-size:10.5px}
+.ghitos span{position:absolute;transform:translateX(-50%);white-space:nowrap;color:var(--mute);background:var(--card);padding:0 3px;border-radius:3px}
+.ghitos span.fin{color:var(--ink);font-weight:600}
+.grow{display:flex;border-top:1px solid var(--line)}
+.lab{position:sticky;left:0;z-index:4;width:64px;flex:none;background:var(--card);border-right:1px solid var(--line);padding:4px 8px;font-size:12px;display:flex;flex-direction:column;justify-content:center}
+.lab b{font-size:12px} .lab small{color:var(--mute);font-size:10.5px;font-variant-numeric:tabular-nums}
+.track{position:relative;flex:1}
+.bar{position:absolute;height:20px;border-radius:4px;font-size:10.5px;line-height:20px;padding:0 4px;overflow:hidden;white-space:nowrap;color:#fff;cursor:default}
+.bar.hecha{background:var(--done)} .bar.adelantada{background:var(--ahead)}
+.bar.curso{background:var(--info)} .bar.ahora{background:transparent;color:var(--info);border:2px solid var(--info);line-height:16px}
+.bar.pasada{background:var(--warn)} .bar.atrasada{background:var(--bad)}
+.bar.pendiente{background:transparent;color:var(--mute);border:1px dashed var(--mute);line-height:18px}
+.bar.siguiente{background:transparent;color:var(--info);border:1px dashed var(--info);line-height:18px;font-weight:600}
+.overlay{position:absolute;top:0;bottom:0;pointer-events:none}
+.vline{position:absolute;top:0;bottom:0;border-left:1px dashed var(--mute);opacity:.7}
+.vline.fin{border-left:2px solid var(--ink);opacity:.5}
+.vline.now{border-left:2px solid var(--bad);opacity:1;z-index:3}
+.vline.now span{position:absolute;bottom:-17px;left:-19px;width:38px;text-align:center;font-size:10px;color:#fff;background:var(--bad);border-radius:3px;font-variant-numeric:tabular-nums}
+.sleep{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,transparent 0 6px,var(--soft) 6px 12px)}
+.gfoot{height:20px}
+.night{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:8px 12px 0;font-size:12px;border-top:1px solid var(--line)}
+.night .t{color:var(--mute)}
+.night .grp{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
+.chip{font-size:10.5px;border-radius:4px;padding:0 5px;line-height:18px;color:#fff}
+.chip.hecha,.chip.adelantada{background:var(--done)} .chip.curso{background:var(--info)}
+.chip.pendiente{color:var(--mute);border:1px dashed var(--mute);line-height:16px}
+.chip.siguiente{color:var(--info);border:1px dashed var(--info);line-height:16px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--mute);padding:8px 12px 0}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+
 .feed{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 14px}
 .feed div{padding:5px 0;border-bottom:1px solid var(--line);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .feed div:last-child{border-bottom:0}
 .feed .when{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums;margin-right:6px}
+.feed .note{color:var(--mute);font-size:12px}
 .tag{display:inline-block;font-size:10px;border-radius:4px;padding:0 5px;margin-right:6px;color:#fff;vertical-align:1px}
 .tag.producto{background:#8b5cf6}.tag.amortizacion{background:#0e9f9a}.tag.seguimiento{background:#e07a1f}.tag.otro{background:var(--done)}
 .full{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 14px;margin-top:20px}
-.full .md h2{font-size:14px;text-transform:none;letter-spacing:0;color:var(--ink)}
+.full .md h2{font-size:14px;text-transform:none;letter-spacing:0;color:var(--ink);display:block}
 .full table{border-collapse:collapse;display:block;overflow-x:auto}
 .full td,.full th{border:1px solid var(--line);padding:3px 6px;text-align:left;vertical-align:top}
 </style>
@@ -88,7 +115,7 @@ details ul{margin:4px 0 0;padding-left:16px} details li{margin:2px 0}
 <main>
   <div class="top">
     <h1>Krylov · cómo vamos</h1>
-    <div class="sync"><span class="dot busy" id="dot"></span><span id="sync">Cargando…</span><button id="btn" title="Revisar ahora">↻</button></div>
+    <div class="sync"><span class="dot busy" id="dot"></span><span id="sync">Cargando…</span><button class="lnk" id="btn" title="Revisar ahora">↻</button></div>
   </div>
   <div class="tiles" id="tiles"></div>
   <div class="alerts" id="alerts"></div>
@@ -96,13 +123,18 @@ details ul{margin:4px 0 0;padding-left:16px} details li{margin:2px 0}
   <h2>Los tres computadores</h2>
   <div class="roles" id="roles"></div>
 
-  <h2>Plan del sábado</h2>
-  <div class="gantt"><div class="gin" id="gantt"></div>
+  <h2>Plan del sábado <small><button class="lnk" id="goNow">ir a ahora</button></small></h2>
+  <div class="gantt">
+    <div class="gscroll" id="gscroll"><div class="gin" id="gantt"></div></div>
+    <div class="night" id="night"></div>
     <div class="legend">
       <span><i style="background:var(--done)"></i>hecha</span>
+      <span><i style="background:var(--ahead)"></i>hecha antes de su hora</span>
       <span><i style="background:var(--info)"></i>en curso</span>
+      <span><i style="border:1px dashed var(--info)"></i>la siguiente</span>
+      <span><i style="border:2px solid var(--info)"></i>en su horario, sin empezar</span>
       <span><i style="background:var(--warn)"></i>pasada de hora</span>
-      <span><i style="background:var(--bad)"></i>atrasada (más del doble: cortar o simplificar)</span>
+      <span><i style="background:var(--bad)"></i>atrasada (más del doble)</span>
       <span><i style="border:1px dashed var(--mute)"></i>pendiente</span>
     </div>
   </div>
@@ -110,7 +142,7 @@ details ul{margin:4px 0 0;padding-left:16px} details li{margin:2px 0}
   <h2>Últimos commits</h2>
   <div class="feed" id="feed"></div>
 
-  <details class="full"><summary>Tablero completo (estado/TABLERO.md)</summary><div class="md" id="tablero"></div></details>
+  <details class="full" id="fullTab"><summary>Tablero completo (estado/TABLERO.md)</summary><div class="md" id="tablero"></div></details>
 </main>
 
 <script>
@@ -124,6 +156,7 @@ const ROLES = [
 const DAY0 = Date.parse('2026-11-21T00:00:00-03:00'); // sábado 00:00, Santiago (UTC-3)
 const toMin = s => { const m = /(\d{1,2}):(\d{2})/.exec(s||''); return m ? +m[1]*60 + +m[2] : null; };
 const fmt = m => String(Math.floor(m/60)%24).padStart(2,'0') + ':' + String(Math.round(m%60)).padStart(2,'0');
+const TIME_PREFIX = /^[a-záéíóú]{3}\s+\d{1,2}:\d{2}\s*·\s*/i;
 
 function sections(md){
   const out = {}; let cur = '_';
@@ -137,43 +170,81 @@ function sections(md){
 }
 const bullets = txt => (txt||'').split('\n').filter(l => /^\s*-\s+/.test(l)).map(l => l.replace(/^\s*-\s+/,''));
 const isEmpty = txt => { const b = bullets(txt); return b.length === 0 || b.every(x => /^\(?ninguno\)?/i.test(x.trim())); };
+const plain = s => (s||'').replace(/\*\*|`|\*/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');
 
 // Una línea larga de markdown → una frase corta: sin hora, sin formato, hasta el primer punto, máx. n caracteres.
 function short(s, n = 90){
-  let t = (s||'').replace(/^[a-záéíóú]{3}\s+\d{1,2}:\d{2}\s*·\s*/i, '')
-                 .replace(/\*\*|`|\*/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1').trim();
+  let t = plain((s||'').replace(TIME_PREFIX, '')).trim();
   t = t.split(/\.\s+(?=[A-ZÁÉÍÓÚ¿(])/)[0].replace(/\.$/, '');
   if (t.length > n) t = t.slice(0, n).replace(/\s+\S*$/, '') + '…';
   return t;
 }
 const timeOf = s => (/^[a-záéíóú]{3}\s+(\d{1,2}:\d{2})/i.exec(s||'') || [])[1] || '';
 
+// Ids de tareas: P-01, A-B3, S-N2, S-05b, y rangos «A-01 a A-04», «A-B1 a A-B4».
 function mentionedIds(txt){
   const ids = new Set();
-  const re = /\b([PAS])-([A-Z]?)(\d+)\b(?:\s*(?:a|al|-|–)\s*\1-\2(\d+)\b)?/g;
+  const re = /\b([PAS])-([A-Z]?)(\d+)([a-z]?)\b(?:\s*(?:a|al|-|–)\s*\1-\2(\d+)\b)?/g;
   let m;
-  while ((m = re.exec(txt||''))){
-    const a = +m[3], b = m[4] ? +m[4] : a, w = m[3].length;
-    for (let i = a; i <= Math.min(b, a+30); i++) ids.add(`${m[1]}-${m[2]}${String(i).padStart(w,'0')}`);
+  while ((m = re.exec(plain(txt)))){
+    const a = +m[3], w = m[3].length;
+    if (!m[5]){ ids.add(`${m[1]}-${m[2]}${m[3]}${m[4]}`); continue; }
+    for (let i = a; i <= Math.min(+m[5], a+30); i++) ids.add(`${m[1]}-${m[2]}${String(i).padStart(w,'0')}`);
   }
   return ids;
 }
 // Hecha = el id aparece en el sujeto de una línea de «Hecho» (antes del primer punto o dos puntos).
+// Devuelve id → minuto en que se anotó (o null si la línea no trae hora).
 function doneIds(hecho){
-  const ids = new Set();
+  const ids = new Map();
   for (const b of bullets(hecho)){
-    const head = b.replace(/^[a-záéíóú]{3}\s+\d{1,2}:\d{2}\s*·\s*/i,'').split(/[.:]/)[0].slice(0,60);
-    for (const id of mentionedIds(head)) ids.add(id);
+    const head = plain(b.replace(TIME_PREFIX,'')).split(/[.:]/)[0].slice(0,70);
+    const t = toMin(timeOf(b));
+    for (const id of mentionedIds(head)) if (!ids.has(id)) ids.set(id, t);
   }
   return ids;
+}
+// «En curso», con la misma convención que «Hecho»: está en curso el id que va en el sujeto de la línea
+// (antes del primer punto o dos puntos; «Sesión A: A-08 …» mira la frase que sigue a «Sesión A»).
+// Lo que va después de «Sigue», «Siguiente», «Después»… en la misma frase es «la siguiente».
+// Lo que se nombra como ya hecho («A-01 a A-04 hechas») no cuenta, y el resto de la línea tampoco.
+const NEXT_WORD = /\b(sigue|siguiente|despu[eé]s|luego|pr[oó]xim[ao])\b/i;
+const DONE_WORD = /\bhech[ao]s?\b|\bterminad[ao]s?\b/i;
+const isNextLine = b => /^(sigue|siguiente|despu[eé]s|luego|pr[oó]xim[ao])\b/i.test(plain(b.replace(TIME_PREFIX,'')).trim());
+function progressIds(txt){
+  const prog = new Set(), next = new Set();
+  for (const b of bullets(txt)){
+    const t = plain(b.replace(TIME_PREFIX,'')).trim();
+    let head = t.split(/[.:]/)[0];
+    if (/^sesi[oó]n\s+\S+$/i.test(head.trim())) head = t.slice(head.length + 1).split(/[.;]/)[0];
+    if (!isNextLine(b) && !DONE_WORD.test(head)){
+      const cut = NEXT_WORD.exec(head);
+      mentionedIds(cut ? head.slice(0, cut.index) : head).forEach(id => prog.add(id));
+    }
+    for (const sent of t.split(/\.\s+/)) for (const seg of sent.split(';')){
+      const m = NEXT_WORD.exec(seg);
+      if (m) mentionedIds(seg.slice(m.index)).forEach(id => next.add(id));
+    }
+  }
+  prog.forEach(id => next.delete(id));
+  return {prog, next};
+}
+// El texto que sigue a «Sigue» / «Siguiente» en la línea más reciente de «En curso» que lo tenga.
+function nextText(txt){
+  for (const b of bullets(txt).reverse()){
+    const m = /\b(?:sigue|siguiente)\b\s*(?:\([^)]*\))?\s*:?\s*(.+)$/i.exec(plain(b.replace(TIME_PREFIX,'')));
+    if (m) return {t: toMin(timeOf(b)), text: m[1]};
+  }
+  return null;
 }
 function parseTasks(workplan){
   const tasks = [];
   for (const line of workplan.split('\n')){
-    const m = /^\|\s*([PAS]-[A-Z0-9]+)\s*\|([^|]*)\|([^|]*)\|([^|]*)\|/.exec(line);
+    const m = /^\|\s*([PAS]-[A-Z0-9]+[a-z]?)\s*\|([^|]*)\|([^|]*)\|([^|]*)\|/.exec(line);
     if (!m) continue;
     const when = m[2].trim(), start = /^\d{1,2}:\d{2}$/.test(when) ? toMin(when) : null, dur = parseInt(m[3]) || null;
-    const desc = (start === null && when.length > 12 ? when : m[4]).replace(/\*\*|`|\*/g,'').trim();
+    const desc = plain(start === null && when.length > 12 ? when : m[4]).trim();
+    if (/^cortad[ao]/i.test(desc)) continue; // P-12 y similares: ya no existen
     tasks.push({id:m[1], when, start, dur, desc, night: start === null});
   }
   return tasks;
@@ -189,15 +260,19 @@ function parseHitos(workplan){
   if (d) list.push({id:'dormir', t:toMin(d[1]), q:'Antes de dormir'});
   return list.filter(x => x.t !== null).sort((a,b) => a.t - b.t);
 }
-function status(task, done, inProgress, now){
-  if (done.has(task.id)) return 'hecha';
-  if (inProgress.has(task.id)) return 'curso';
-  if (task.night) return 'pendiente';
+// D-29: las horas del plan son topes. Una tarea hecha antes de su hora es «adelantada».
+function status(task, done, prog, next, now){
+  if (done.has(task.id)){
+    const t = done.get(task.id);
+    return !task.night && t !== null && t < task.start ? 'adelantada' : 'hecha';
+  }
+  if (prog.has(task.id)) return 'curso';
+  if (task.night) return next.has(task.id) ? 'siguiente' : 'pendiente';
   const d = task.dur || 30;
   if (now >= task.start + 2*d) return 'atrasada';
   if (now >= task.start + d) return 'pasada';
   if (now >= task.start) return 'ahora';
-  return 'pendiente';
+  return next.has(task.id) ? 'siguiente' : 'pendiente';
 }
 // Tabla «Entrenamiento en curso» → {motor, desde, hasta}
 function training(txt){
@@ -216,7 +291,19 @@ function commitRole(c, learned){
   const m = /^estado\s+(producto|amortizacion|seguimiento)\b/i.exec(msg);
   if (m){ learned[name] = m[1].toLowerCase(); return learned[name]; }
   if (/^(ronda|H\d\b|tablero|hito)/i.test(msg)) return 'seguimiento';
+  const id = /^([PAS])-/.exec(msg);
+  if (id) return ROLES.find(r => r.pre === id[1]).id;
   return learned[name] || null;
+}
+// Reparte barras que se tocan en carriles (PC 2 tiene dos sesiones a la misma hora).
+function lanes(items){
+  const ends = [];
+  for (const it of items.sort((a,b) => a.x0 - b.x0)){
+    let k = ends.findIndex(e => e <= it.x0 + 0.5);
+    if (k < 0){ k = ends.length; ends.push(0); }
+    ends[k] = it.x1 + 3; it.lane = k;
+  }
+  return Math.max(1, ends.length);
 }
 // PARSE-END
 
@@ -224,62 +311,108 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nowMin = () => (Date.now() - DAY0) / 60000;
 const ago = ms => { const m = Math.round((Date.now()-ms)/60000); return m < 1 ? 'recién' : m < 60 ? `hace ${m} min` : `hace ${Math.floor(m/60)} h ${m%60} min`; };
-const hhmm = ms => new Date(ms).toLocaleTimeString('es-CL',{timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit'});
+const hhmm = ms => new Date(ms).toLocaleTimeString('es-CL',{timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+const dur = m => { m = Math.max(0, Math.round(m)); return m < 60 ? `${m} min` : `${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')} min`; };
 const sleeping = n => n >= toMin('05:15') && n < toMin('08:15');
+const FILES = ['estado/TABLERO.md','WORKPLAN.md', ...ROLES.map(r => r.file)];
 
-// ---- Sincronización: solo se recarga cuando hay un commit nuevo ----
-// Cada cierto tiempo se pregunta a GitHub por el último commit (respuesta de 40 caracteres).
-// Si cambió, se leen los archivos de ese commit y se redibuja. Si no, no se hace nada.
-// Pestaña oculta: no pregunta. Al volver a la pestaña: pregunta al tiro.
-// Token opcional (#token=… una vez; queda en este navegador) para no chocar con el límite de 60/h por red.
+// ---- Sincronización ----
+// Con la API de GitHub: se pregunta por el último commit (respuesta de 40 caracteres) y solo si cambió
+// se leen los archivos de ese commit. Sin token, la API da 60 consultas por hora **por red**, y la red
+// del evento se comparte: cuando se agota, se pasa a «modo sin API» y se leen los archivos de `main`
+// directo (hasta 5 min de atraso por la caché de GitHub) hasta que el límite se repone.
+// Token opcional (#token=… una vez; queda en este navegador): 5.000 consultas por hora, propias.
 let TOKEN = '';
 try{
   const m = /token=([\w-]+)/.exec(location.hash);
-  if (m){ localStorage.setItem('gh_token', m[1]); history.replaceState(null, '', location.pathname); }
+  if (m){ localStorage.setItem('gh_token', m[1]); history.replaceState(null, '', location.pathname + location.search); }
   TOKEN = localStorage.getItem('gh_token') || '';
 }catch(e){}
 const AUTH = TOKEN ? {Authorization: 'Bearer ' + TOKEN} : {};
 let data = null, sha = null, lastCheck = 0, nextCheck = 0, rate = null, checking = false, unseen = 0;
-const interval = () => TOKEN ? 20e3 : (rate !== null && rate < 15 ? 300e3 : 90e3);
+let mode = 'api', resetAt = 0, lastChange = 0, rawFp = '';
+const interval = () => mode === 'raw' ? 120e3 : TOKEN ? 20e3 : (rate !== null && rate < 15 ? 300e3 : 90e3);
 
 async function check(force){
   if (checking) return; checking = true;
   $('dot').className = 'dot busy';
   try{
-    const r = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, {cache:'no-cache', headers:{Accept:'application/vnd.github.sha', ...AUTH}});
-    const rem = r.headers.get('x-ratelimit-remaining'); if (rem !== null) rate = +rem;
-    if (!r.ok) throw new Error(r.status);
-    const s = (await r.text()).trim();
-    lastCheck = Date.now();
-    if (s !== sha || force) await load(s, sha !== null && s !== sha);
+    if (mode === 'raw' && Date.now() < resetAt) await checkRaw(force);
+    else {
+      const r = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, {cache:'no-cache', headers:{Accept:'application/vnd.github.sha', ...AUTH}});
+      const rem = r.headers.get('x-ratelimit-remaining'); if (rem !== null) rate = +rem;
+      if (r.status === 403 || r.status === 429 || (!r.ok && rate === 0)){
+        const reset = +r.headers.get('x-ratelimit-reset');
+        mode = 'raw'; resetAt = reset ? reset*1000 + 5e3 : Date.now() + 15*60e3;
+        await checkRaw(force);
+      } else if (!r.ok) throw new Error('HTTP ' + r.status);
+      else {
+        mode = 'api';
+        const s = (await r.text()).trim();
+        if (s !== sha || force) await load(s);
+      }
+    }
   }catch(e){
-    lastCheck = Date.now();
-    if (!data) await load('main', false); // sin API: se leen los archivos igual (con hasta 5 min de atraso)
+    // Sin red hacia la API (o respuesta rara): se leen los archivos igual.
+    mode = 'raw'; resetAt = Date.now() + 5*60e3;
+    try{ await checkRaw(force); }catch(e2){}
   }
+  lastCheck = Date.now();
   checking = false;
   nextCheck = Date.now() + interval();
   render(); tick();
 }
 
-async function load(newSha, isNew){
+const rawFetch = (ref, p) => fetch(`https://raw.githubusercontent.com/${REPO}/${ref}/${p}`, {cache: ref === 'main' ? 'no-cache' : 'default'})
+  .then(r => r.ok ? r.text() : '').catch(() => '');
+
+async function load(newSha){
   let commits = null;
   try{
     const r = await fetch(`https://api.github.com/repos/${REPO}/commits?per_page=30`, {cache:'no-cache', headers:AUTH});
+    const rem = r.headers.get('x-ratelimit-remaining'); if (rem !== null) rate = +rem;
     if (r.ok) commits = await r.json();
   }catch(e){}
   const ref = commits?.[0]?.sha || newSha;
-  const raw = p => fetch(`https://raw.githubusercontent.com/${REPO}/${ref}/${p}`, {cache: ref==='main' ? 'no-cache' : 'default'})
-                    .then(r => r.ok ? r.text() : '').catch(() => '');
-  const [tablero, workplan, ...estados] = await Promise.all(['estado/TABLERO.md','WORKPLAN.md', ...ROLES.map(r => r.file)].map(raw));
-  const prevTop = data?.commits?.[0]?.sha;
-  data = {commits, tablero, workplan, estados};
-  sha = ref;
-  if (isNew && commits){
-    const fresh = []; for (const c of commits){ if (c.sha === prevTop) break; fresh.push(c); }
-    data.fresh = new Set(fresh.map(c => c.sha));
-    if (document.hidden){ unseen += fresh.length || 1; document.title = `(${unseen}) Krylov · Tablero`; }
-  }
+  const files = await Promise.all(FILES.map(p => rawFetch(ref, p)));
+  const fp = files.join('\0');
+  // «Nuevo» = cambió algún archivo o llegó un commit que no se había visto (no basta con volver del modo sin API).
+  const isNew = !!data && (fp !== rawFp || (!!commits && !!data.commits && commits[0]?.sha !== data.commits[0]?.sha));
+  const [tablero, workplan, ...estados] = files;
+  setData({commits: commits || data?.commits || null, commitsAt: commits ? Date.now() : data?.commitsAt, tablero, workplan, estados}, isNew);
+  sha = ref; rawFp = fp;
 }
+
+async function checkRaw(force){
+  const files = await Promise.all(FILES.map(p => rawFetch('main', p)));
+  if (!files[1] && data) return; // la lectura falló: se conserva lo último que se vio
+  const fp = files.join('\0');
+  if (fp === rawFp && !force && data) return;
+  const isNew = !!data && fp !== rawFp;
+  rawFp = fp; sha = 'main';
+  const [tablero, workplan, ...estados] = files;
+  setData({commits: data?.commits || null, commitsAt: data?.commitsAt, tablero, workplan, estados}, isNew);
+}
+
+function setData(next, isNew){
+  const prevTop = data?.commits?.[0]?.sha;
+  const prevEst = data?.estados;
+  data = next;
+  if (!isNew) return;
+  lastChange = Date.now();
+  let n = 1;
+  if (next.commits && prevTop && next.commits[0]?.sha !== prevTop){
+    const fresh = []; for (const c of next.commits){ if (c.sha === prevTop) break; fresh.push(c); }
+    data.fresh = new Set(fresh.map(c => c.sha)); n = fresh.length || 1;
+  }
+  if (prevEst) data.freshEst = new Set(ROLES.filter((r,i) => prevEst[i] !== next.estados[i]).map(r => r.id));
+  if (document.hidden){ unseen += n; document.title = `(${unseen}) Krylov · Tablero`; }
+}
+
+// ---- Dibujo ----
+const PX = 1.8;             // píxeles por minuto en el plan del sábado
+const T0 = toMin('03:00');
+let ganttTouched = false;   // si la persona movió el plan a mano, no se re-centra solo
 
 function render(){
   if (!data) return;
@@ -294,15 +427,23 @@ function render(){
     const r = ROLES.find(r => c[1] && c[1].toLowerCase().startsWith(r.id));
     if (r) sem[r.id] = {estado:c[2], nota:c[3], cls: /🔴/.test(c[2]) ? 'bad' : /🟡|🟠/.test(c[2]) ? 'warn' : /🟢/.test(c[2]) ? 'ok' : ''};
   }
+  const updated = /\*\*Actualizado:\*\*\s*([^·\n]+)/.exec(tablero)?.[1]?.trim() || '';
+  const tu = toMin(updated);
   const sig = {};
-  for (const b of bullets(tabSec['Siguiente tarea de cada uno'])){
-    const r = ROLES.find(r => b.includes(r.pc));
-    if (r) sig[r.id] = b.replace(/^\*\*[^*]*\*\*\s*/, '');
+  for (const b of bullets(Object.entries(tabSec).find(([k]) => /^Siguiente tarea/.test(k))?.[1])){
+    // La línea es del computador que va en su encabezado («**PC 2 · amortizacion:** …»), no del primero que nombre.
+    const pc = /^\*\*\s*(PC\s*\d)/.exec(b)?.[1]?.replace(/\s+/, ' ');
+    const r = ROLES.find(r => r.pc === pc);
+    if (r && !sig[r.id]) sig[r.id] = b.replace(/^\*\*[^*]*\*\*\s*/, '');
   }
 
-  const done = new Set(), prog = new Set();
-  est.forEach(s => { doneIds(s['Hecho']).forEach(id => done.add(id)); mentionedIds(s['En curso']).forEach(id => prog.add(id)); });
-  const tasks = parseTasks(workplan).map(t => ({...t, st: status(t, done, prog, now)}));
+  const done = new Map(), prog = new Set(), next = new Set();
+  est.forEach(s => {
+    doneIds(s['Hecho']).forEach((t, id) => done.set(id, t));
+    const p = progressIds(s['En curso']);
+    p.prog.forEach(id => prog.add(id)); p.next.forEach(id => next.add(id));
+  });
+  const tasks = parseTasks(workplan).map(t => ({...t, st: status(t, done, prog, next, now)}));
   const hitos = parseHitos(workplan);
 
   const learned = {}, lastByRole = {};
@@ -311,20 +452,20 @@ function render(){
   cs.forEach(x => { if (!x.role) x.role = learned[x.c.commit.author.name] || null; });
   cs.reverse();
   for (const x of cs) if (x.role && !lastByRole[x.role]) lastByRole[x.role] = Date.parse(x.c.commit.committer.date);
-  const freshRoles = new Set(cs.filter(x => data.fresh?.has(x.c.sha)).map(x => x.role));
+  const freshRoles = new Set([...cs.filter(x => data.fresh?.has(x.c.sha)).map(x => x.role), ...(data.freshEst || [])]);
+  const flashOn = Date.now() - lastChange < 90e3;
 
   // Indicadores
-  const updated = /\*\*Actualizado:\*\*\s*([^·\n]+)/.exec(tablero)?.[1]?.trim() || '';
-  const tu = toMin(updated);
   const nextH = hitos.find(h => h.t > now);
   $('tiles').innerHTML = [
     ['Producto terminado (sáb 18:00)', `<span data-cd="2026-11-21T18:00:00-03:00"></span>`],
     ['Entrega (dom 08:30)', `<span data-cd="2026-11-22T08:30:00-03:00"></span>`],
-    [nextH ? `Próximo: ${nextH.id === 'dormir' ? 'dormir' : nextH.id} a las ${fmt(nextH.t)}` : 'Hitos', nextH ? `en ${Math.round(nextH.t-now)} min` : 'listos'],
-    ['Tablero de PC 3', tu !== null ? `hace ${Math.max(0, Math.round(now - tu))} min` : '—'],
-  ].map(([k,v]) => `<div class="tile"><div class="k">${esc(k)}</div><div class="v">${v}</div></div>`).join('');
+    [nextH ? `Próximo: ${nextH.id === 'dormir' ? 'dormir' : nextH.id} a las ${fmt(nextH.t)}` : 'Hitos', nextH ? `en ${dur(nextH.t-now)}` : 'listos'],
+    ['Tablero de PC 3', tu !== null ? `hace ${dur(now - tu)}` : '—'],
+  ].map(([k,v]) => `<div class="tile"><div class="k" title="${esc(k)}">${esc(k)}</div><div class="v">${v}</div></div>`).join('');
+  countdowns();
 
-  // Alertas: una línea cada una
+  // Alertas: las importantes primero, a lo más tres a la vista
   const al = [];
   ROLES.forEach((r,i) => {
     const s = est[i];
@@ -332,33 +473,47 @@ function render(){
     const lc = lastByRole[r.id];
     if (commits && lc && (Date.now()-lc) > 45*60e3 && !sleeping(now)) al.push(['warn', `${r.pc} sin commits ${ago(lc)}`]);
   });
-  if (tu !== null && now - tu > 30 && !sleeping(now)) al.push(['warn', `Tablero sin actualizar hace ${Math.round(now-tu)} min`]);
-  tasks.filter(t => t.st === 'atrasada').forEach(t => al.push(['bad', `${t.id} atrasada (desde ${t.when}, ${t.dur} min): ${short(t.desc, 80)}`]));
-  $('alerts').innerHTML = al.map(([c,h]) => `<div class="alert ${c}" title="${esc(h)}">${esc(h)}</div>`).join('');
+  if (tu !== null && now - tu > 30 && !sleeping(now)) al.push(['warn', `Tablero sin actualizar hace ${dur(now-tu)}`]);
+  const late = tasks.filter(t => t.st === 'atrasada');
+  ROLES.forEach(r => {
+    const l = late.filter(t => t.id.startsWith(r.pre+'-'));
+    if (l.length === 1) al.push(['bad', `${l[0].id} atrasada (desde ${l[0].when}, ${l[0].dur} min): ${short(l[0].desc, 80)}`]);
+    else if (l.length > 1) al.push(['bad', `${r.pc}: ${l.length} tareas atrasadas (${l.map(t => t.id).join(', ')}): cortar o simplificar`]);
+  });
+  const al1 = al.sort((a,b) => (a[0]==='bad'?0:1) - (b[0]==='bad'?0:1));
+  const line = ([c,h]) => `<div class="alert ${c}" title="${esc(h)}">${esc(h)}</div>`;
+  const alertsOpen = $('alerts').querySelector('details')?.open;
+  $('alerts').innerHTML = al1.slice(0,3).map(line).join('') +
+    (al1.length > 3 ? `<details ${alertsOpen ? 'open' : ''}><summary>${al1.length-3} avisos más</summary>${al1.slice(3).map(line).join('')}</details>` : '');
 
-  // Tarjetas
+  // Tarjetas (se conserva qué «Más» estaba abierto)
+  const openCards = new Set([...document.querySelectorAll('#roles details[open]')].map(d => d.dataset.k));
   $('roles').innerHTML = ROLES.map((r,i) => {
     const s = est[i], sm = sem[r.id] || {};
     const persona = /Persona:\s*([^·\n]+)/.exec(estados[i])?.[1]?.trim().replace(/^\[.*\]$/, '') || '';
-    const curso = bullets(s['En curso']).slice(-2);
+    const curso = bullets(s['En curso']).filter(b => !isNextLine(b)).slice(-2);
     const tr = training(s['Entrenamiento en curso']);
-    const nextPlan = tasks.filter(t => t.id.startsWith(r.pre+'-') && !t.night && t.st !== 'hecha').sort((a,b) => a.start-b.start)[0];
+    const mine = tasks.filter(t => t.id.startsWith(r.pre+'-'));
+    const nextPlan = mine.filter(t => !t.night && !['hecha','adelantada','curso'].includes(t.st)).sort((a,b) => a.start-b.start)[0];
+    const own = nextText(s['En curso']);
+    const sigue = own && (tu === null || own.t === null || own.t >= tu) ? own.text : sig[r.id] || (nextPlan ? `${nextPlan.id} · ${nextPlan.desc}` : '');
     const lc = lastByRole[r.id];
-    const row = (k, v) => v ? `<div class="row"><div class="k">${k}</div><div>${v}</div></div>` : '';
+    const row = (k, v) => v ? `<div class="row"><div class="k">${k}</div><div class="v">${v}</div></div>` : '';
     let trHtml = '';
     if (tr){
       const p = tr.desde !== null && tr.hasta !== null ? Math.min(100, Math.max(0, (now - tr.desde) / (tr.hasta - tr.desde) * 100)) : null;
       trHtml = row('Entrena', `<b>${esc(tr.motor)}</b> ${tr.desde!==null?fmt(tr.desde):''} → ${tr.hasta!==null?fmt(tr.hasta):'?'}${p!==null ? `<div class="prog"><i style="width:${p.toFixed(0)}%"></i></div>` : ''}`);
     }
-    const hechos = bullets(s['Hecho']).slice(-4).reverse();
+    const hechos = bullets(s['Hecho']).slice(-5).reverse();
     const pedidos = isEmpty(s['Pedidos a otros']) ? [] : bullets(s['Pedidos a otros']).slice(-3);
-    return `<div class="role ${sm.cls||''} ${freshRoles.has(r.id) ? 'flash' : ''}">
+    const nDone = mine.filter(t => t.st === 'hecha' || t.st === 'adelantada').length;
+    return `<div class="role ${sm.cls||''} ${flashOn && freshRoles.has(r.id) ? 'flash' : ''}">
       <div class="head"><b>${r.pc} · ${r.id}</b><span class="sem">${esc(sm.estado||'')}</span></div>
-      ${row('Ahora', curso.map(x => esc(short(x, 85))).join('<br>'))}
-      ${row('Sigue', esc(sig[r.id] ? short(sig[r.id], 85) : nextPlan ? `${nextPlan.id} · ${short(nextPlan.desc, 70)}` : ''))}
+      ${row('Ahora', curso.map(x => esc(short(x, 80))).join('<br>'))}
+      ${row('Sigue', esc(short(sigue, 80)))}
       ${trHtml}
-      <div class="meta">${persona ? esc(persona) + ' · ' : ''}último commit ${lc ? ago(lc) : '—'}</div>
-      <details><summary>Más</summary>
+      <div class="meta">${persona ? esc(persona) + ' · ' : ''}${nDone} de ${mine.length} tareas · último commit ${lc ? ago(lc) : '—'}</div>
+      <details data-k="${r.id}" ${openCards.has(r.id) ? 'open' : ''}><summary>Más</summary>
         ${hechos.length ? `<b>Hecho</b><ul>${hechos.map(x => `<li>${esc(timeOf(x))} ${esc(short(x, 100))}</li>`).join('')}</ul>` : ''}
         ${pedidos.length ? `<b>Pide</b><ul>${pedidos.map(x => `<li>${esc(short(x, 100))}</li>`).join('')}</ul>` : ''}
         ${sm.nota ? `<b>Nota del tablero</b><ul><li>${esc(short(sm.nota, 140))}</li></ul>` : ''}
@@ -366,46 +521,91 @@ function render(){
     </div>`;
   }).join('');
 
-  // Línea de tiempo
-  const T0 = toMin('03:00'), T1 = toMin('18:30'), pct = m => ((m - T0) / (T1 - T0) * 100).toFixed(2) + '%';
-  let g = '<div class="gaxis">';
-  for (let h = 3; h <= 18; h++) g += `<span style="left:${pct(h*60)}">${String(h).padStart(2,'0')}</span>`;
-  g += '</div><div style="position:relative">';
-  ROLES.forEach(r => {
-    g += `<div class="grow"><div class="lab">${r.pc}</div><div class="track">`;
-    tasks.filter(t => t.id.startsWith(r.pre+'-') && !t.night).forEach(t => {
-      const w = Math.max(t.dur || 20, 6);
-      g += `<div class="bar ${t.st}" style="left:${pct(t.start)};width:calc(${(w/(T1-T0)*100).toFixed(2)}% - 2px)" title="${esc(t.id+' · '+t.when+' · '+(t.dur||'?')+' min\n'+short(t.desc, 160))}">${t.id}</div>`;
-    });
-    g += '</div></div>';
-  });
-  g += '<div style="position:absolute;inset:0 0 0 56px;pointer-events:none">';
-  hitos.forEach(h => g += `<div class="vline h" style="left:${pct(h.t)}"><span class="t">${h.id==='dormir'?'zzz':h.id}</span></div>`);
-  if (now > T0 && now < T1) g += `<div class="vline" style="left:${pct(now)}"><span class="t">${fmt(now)}</span></div>`;
-  g += '</div></div>';
-  $('gantt').innerHTML = g;
+  renderGantt(tasks, hitos, now);
 
   // Commits: una línea cada uno
-  $('feed').innerHTML = commits ? cs.slice(0,8).map(({c, role}) => {
+  const stale = data.commitsAt && mode === 'raw' ? `<div class="note">Lista de commits de las ${hhmm(data.commitsAt)}: la API de GitHub está en su límite para esta red. Los estados y el plan sí están al día.</div>` : '';
+  $('feed').innerHTML = commits ? stale + cs.slice(0,8).map(({c, role}) => {
     const t = Date.parse(c.commit.committer.date);
     return `<div title="${esc(c.commit.message.split('\n')[0])}"><span class="when">${hhmm(t)}</span><span class="tag ${role||'otro'}">${role ? ROLES.find(r => r.id===role).pc : '—'}</span>${esc(c.commit.message.split('\n')[0])}</div>`;
-  }).join('') : '<div>Lista de commits no disponible (límite de GitHub para esta red).</div>';
+  }).join('') : '<div class="note">Lista de commits no disponible: la API de GitHub está en su límite para esta red. Los estados y el plan sí se leen. Para evitarlo, abrir una vez con <code>#token=…</code>.</div>';
 
   const tabMd = tablero.replace(/^#\s.*\n/, '');
   $('tablero').innerHTML = DOMPurify.sanitize(marked.parse(tabMd || '_No se pudo leer._'));
 }
 
+function renderGantt(tasks, hitos, now){
+  const last = Math.max(...tasks.filter(t => !t.night).map(t => t.start + (t.dur||20)), toMin('19:00'));
+  const T1 = Math.ceil(last/30)*30;
+  const W = (T1 - T0) * PX, x = m => ((m - T0) * PX).toFixed(1);
+  const LAB = 64, BAR = 20, GAP = 4;
+  let g = `<div style="width:${W + LAB}px">`;
+  g += `<div class="gaxis" style="margin-left:${LAB}px">`;
+  for (let h = Math.ceil(T0/60); h*60 <= T1; h++) g += `<span style="left:${x(h*60)}px">${String(h).padStart(2,'0')}:00</span>`;
+  g += `</div><div class="ghitos" style="margin-left:${LAB}px">`;
+  hitos.forEach(h => g += `<span style="left:${x(h.t)}px" title="${esc(h.q||'')}">${h.id === 'dormir' ? 'dormir' : h.id} · ${fmt(h.t)}</span>`);
+  g += `<span class="fin" style="left:${x(toMin('18:00'))}px">producto listo · 18:00</span></div>`;
+  g += '<div style="position:relative">';
+  // capa de fondo (debajo de las barras): la noche, los hitos y las 18:00
+  g += `<div class="overlay" style="left:${LAB}px;width:${W}px">`;
+  g += `<div class="sleep" style="left:${x(toMin('05:15'))}px;width:${(toMin('08:15')-toMin('05:15'))*PX}px" title="05:15 a 08:15: se duerme, los agentes siguen solos"></div>`;
+  hitos.forEach(h => g += `<div class="vline" style="left:${x(h.t)}px"></div>`);
+  g += `<div class="vline fin" style="left:${x(toMin('18:00'))}px"></div></div>`;
+  ROLES.forEach(r => {
+    const mine = tasks.filter(t => t.id.startsWith(r.pre+'-'));
+    const day = mine.filter(t => !t.night).map(t => {
+      const w = Math.max((t.dur || 20) * PX, t.id.length * 6.4 + 8);
+      return {t, x0: (t.start - T0) * PX, x1: (t.start - T0) * PX + w, w};
+    });
+    const n = lanes(day);
+    const h = n * (BAR + GAP) + GAP + 2;
+    const nDone = mine.filter(t => t.st === 'hecha' || t.st === 'adelantada').length;
+    g += `<div class="grow" style="height:${h}px"><div class="lab"><b>${r.pc}</b><small>${nDone}/${mine.length} hechas</small></div><div class="track">`;
+    day.forEach(({t, x0, w, lane}) => {
+      const tip = `${t.id} · ${t.when} · ${t.dur||'?'} min · ${label(t.st)}\n${short(t.desc, 200)}`;
+      g += `<div class="bar ${t.st}" style="left:${x0.toFixed(1)}px;width:${(w-2).toFixed(1)}px;top:${GAP + 1 + lane*(BAR+GAP)}px" title="${esc(tip)}">${t.id}</div>`;
+    });
+    g += '</div></div>';
+  });
+  // capa de arriba: la línea de ahora
+  g += `<div class="overlay" style="left:${LAB}px;width:${W}px;z-index:3">`;
+  if (now > T0 && now < T1) g += `<div class="vline now" style="left:${x(now)}px"><span>${fmt(now)}</span></div>`;
+  g += '</div></div><div class="gfoot"></div></div>';
+
+  const sc = $('gscroll'), keep = sc.scrollLeft;
+  $('gantt').innerHTML = g;
+  if (ganttTouched) sc.scrollLeft = keep; else centerNow();
+
+  // Lista nocturna: tareas sin hora, como fichas
+  $('night').innerHTML = '<span class="t">Lista nocturna (agentes solos):</span>' + ROLES.map(r => {
+    const ns = tasks.filter(t => t.night && t.id.startsWith(r.pre+'-'));
+    return ns.length ? `<span class="grp"><b style="font-size:11px">${r.pc}</b>${ns.map(t => `<span class="chip ${t.st}" title="${esc(t.id + ' · ' + label(t.st) + '\n' + short(t.desc, 200))}">${t.id}${t.st === 'hecha' ? ' ✓' : ''}</span>`).join('')}</span>` : '';
+  }).join('');
+}
+const label = st => ({hecha:'hecha', adelantada:'hecha antes de su hora', curso:'en curso', siguiente:'la siguiente', ahora:'en su horario, sin empezar', pasada:'pasada de hora', atrasada:'atrasada', pendiente:'pendiente'})[st] || st;
+function centerNow(){
+  const sc = $('gscroll'); if (!sc) return;
+  const now = nowMin();
+  const target = (Math.max(T0, now - 75) - T0) * PX;
+  sc.scrollLeft = Math.max(0, target);
+}
+$('gscroll').addEventListener('pointerdown', () => ganttTouched = true);
+$('gscroll').addEventListener('wheel', () => ganttTouched = true, {passive:true});
+$('goNow').onclick = () => { ganttTouched = false; centerNow(); };
+
 function cd(t){ const s = Math.max(0, Math.round((t - Date.now())/1000)); return `${Math.floor(s/3600)} h ${String(Math.floor(s%3600/60)).padStart(2,'0')} min`; }
+const countdowns = () => document.querySelectorAll('[data-cd]').forEach(el => el.textContent = cd(Date.parse(el.dataset.cd)));
 function tick(){
-  document.querySelectorAll('[data-cd]').forEach(el => el.textContent = cd(Date.parse(el.dataset.cd)));
+  countdowns();
   if (!lastCheck) return;
-  const slow = !TOKEN && rate !== null && rate < 15;
-  $('dot').className = 'dot ' + (checking ? 'busy' : document.hidden ? 'off' : slow ? 'slow' : '');
-  $('sync').textContent = data
-    ? `al día con ${sha && sha !== 'main' ? sha.slice(0,7) : 'main'}` +
+  const raw = mode === 'raw', slow = !TOKEN && rate !== null && rate < 15;
+  $('dot').className = 'dot ' + (checking ? 'busy' : document.hidden ? 'off' : raw || slow ? 'slow' : '');
+  const sync = !data ? 'sin datos'
+    : raw ? `modo sin API (límite de GitHub hasta las ${hhmm(resetAt)}): archivos de main con hasta 5 min de atraso · revisado ${ago(lastCheck)}`
+    : `al día con ${sha ? sha.slice(0,7) : 'main'}` +
       (data.commits?.[0] ? ` (commit ${ago(Date.parse(data.commits[0].commit.committer.date))})` : '') +
-      ` · revisado ${ago(lastCheck)}` + (slow ? ' · modo ahorro' : '')
-    : 'sin datos';
+      ` · revisado ${ago(lastCheck)}` + (slow ? ' · modo ahorro' : '');
+  $('sync').textContent = sync; $('sync').title = sync;
 }
 $('btn').onclick = () => check(true);
 document.addEventListener('visibilitychange', () => {

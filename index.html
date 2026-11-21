@@ -4,62 +4,137 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
-<title>Krylov · Tablero</title>
+<title>Krylov · minería</title>
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
 <style>
+/* Colores por papel. Los cuatro de estado (bien, aviso, serio, crítico) van siempre con ícono y palabra. */
 :root{
-  --bg:#f6f5f2;--card:#fff;--ink:#1d1d1b;--mute:#6b6a65;--line:#e4e2dc;--soft:#efede8;
-  --ok:#1f9d55;--warn:#d69e2e;--bad:#d64545;--info:#3b6fd4;--done:#9aa39d;--ahead:#1f9d55;
-  --okbg:#e7f5ec;--warnbg:#fbf3e0;--badbg:#fbe9e9;--infobg:#e8effb;
+  color-scheme:light;
+  --bg:#f4f3f0;--card:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--mute:#898781;--line:#e2e0da;--soft:#ecebe6;
+  --good:#0ca30c;--goodtext:#006300;--warn:#fab219;--serious:#ec835a;--crit:#d03b3b;--info:#2a78d6;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#121211;--card:#1c1c1a;--ink:#ecebe7;--mute:#9b9a94;--line:#2e2e2b;--soft:#242422;
-  --okbg:#15301f;--warnbg:#33290f;--badbg:#3a1a1a;--infobg:#17243d;--done:#5d655f;--ahead:#2f9e62;
+  color-scheme:dark;
+  --bg:#121211;--card:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--mute:#898781;--line:#2e2e2b;--soft:#242422;
+  --goodtext:#0ca30c;--info:#3987e5;
 }}
 :root[data-theme="dark"]{
-  --bg:#121211;--card:#1c1c1a;--ink:#ecebe7;--mute:#9b9a94;--line:#2e2e2b;--soft:#242422;
-  --okbg:#15301f;--warnbg:#33290f;--badbg:#3a1a1a;--infobg:#17243d;--done:#5d655f;--ahead:#2f9e62;
+  color-scheme:dark;
+  --bg:#121211;--card:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--mute:#898781;--line:#2e2e2b;--soft:#242422;
+  --goodtext:#0ca30c;--info:#3987e5;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 main{max-width:1180px;margin:0 auto;padding:16px}
 h1{font-size:18px;margin:0}
-h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mute);margin:22px 0 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-h2 small{text-transform:none;letter-spacing:0;font-weight:400}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink2);margin:24px 0 8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+h2 small{text-transform:none;letter-spacing:0;font-weight:400;font-size:12.5px;color:var(--ink2)}
 code{font-size:12px}
 button.lnk{font:inherit;font-size:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:1px 8px;cursor:pointer}
 .top{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
-.sync{color:var(--mute);font-size:12px;display:flex;gap:8px;align-items:center;min-width:0}
+.sync{color:var(--ink2);font-size:12px;display:flex;gap:8px;align-items:center;min-width:0}
 .sync #sync{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.dot{width:8px;height:8px;border-radius:50%;background:var(--ok);display:inline-block;flex:none}
-.dot.busy{background:var(--info)} .dot.slow{background:var(--warn)} .dot.off{background:var(--bad)}
-.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
-@media (max-width:700px){.tiles{grid-template-columns:repeat(2,1fr)}}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--good);display:inline-block;flex:none}
+.dot.busy{background:var(--info)} .dot.slow{background:var(--warn)} .dot.off{background:var(--crit)}
+.banner{margin-top:10px;border-radius:8px;padding:8px 12px;border:1px dashed var(--info);background:color-mix(in srgb,var(--info) 10%,var(--card));font-size:13px}
+
+/* Cuentas regresivas */
+.tiles{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:12px}
+@media (max-width:980px){.tiles{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:520px){.tiles{grid-template-columns:repeat(2,1fr)}}
 .tile{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 10px;min-width:0}
-.tile .k{font-size:11px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .k{font-size:11px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tile .v{font-size:19px;font-weight:650;font-variant-numeric:tabular-nums;white-space:nowrap}
+.tile .s{font-size:11px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile.past .v{color:var(--mute);font-weight:500}
+
 .alerts{display:flex;flex-direction:column;gap:4px;margin-top:10px}
-.alert{border-radius:7px;padding:4px 10px;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.alert.bad{background:var(--badbg)} .alert.warn{background:var(--warnbg)} .alert.info{background:var(--infobg)}
+.alert{border-radius:7px;padding:4px 10px;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;border-left:3px solid var(--line)}
+.alert.bad{background:color-mix(in srgb,var(--crit) 13%,var(--card));border-left-color:var(--crit)}
+.alert.warn{background:color-mix(in srgb,var(--warn) 18%,var(--card));border-left-color:var(--warn)}
 .alerts details{margin:0} .alerts details summary{font-size:12px;padding:0 10px}
 .alerts details .alert{margin-top:4px}
+
+/* Las cinco decisiones */
+.casos{display:flex;flex-direction:column;gap:8px}
+.caso{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:grid;grid-template-columns:minmax(190px,1.1fr) 3.2fr minmax(150px,.9fr);gap:8px 14px;align-items:center;transition:box-shadow .4s;min-width:0}
+.caso.flash{box-shadow:0 0 0 3px var(--info)}
+.caso .quien b{font-size:15px;display:block}
+.caso .quien .q{font-size:13px;color:var(--ink2)}
+.caso .quien .m{font-size:11.5px;color:var(--mute)}
+.pipe{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(6,1fr);gap:6px;min-width:0}
+.pipe li{position:relative;border-radius:7px;padding:4px 6px 5px;border:1px solid var(--line);border-left-width:3px;min-width:0;background:var(--card)}
+.pipe li+li::before{content:"";position:absolute;left:-10px;top:50%;width:7px;border-top:2px solid var(--line)}
+.pipe .st{display:block;font-size:10.5px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pipe .ev{display:block;font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pipe .ic{display:inline-block;width:1.1em;font-weight:700}
+.pipe li.listo{border-color:color-mix(in srgb,var(--good) 45%,var(--line));border-left-color:var(--good);background:color-mix(in srgb,var(--good) 12%,var(--card))}
+.pipe li.listo .ic{color:var(--goodtext)}
+.pipe li.curso{border-color:color-mix(in srgb,var(--info) 45%,var(--line));border-left-color:var(--info);background:color-mix(in srgb,var(--info) 12%,var(--card))}
+.pipe li.curso .ic{color:var(--info)}
+.pipe li.pendiente{border-style:dashed;border-left-style:solid;border-left-color:var(--mute)}
+.pipe li.pendiente .ev{color:var(--ink2);font-weight:500}
+.pipe li.nopasa{border-color:color-mix(in srgb,var(--crit) 50%,var(--line));border-left-color:var(--crit);background:color-mix(in srgb,var(--crit) 12%,var(--card))}
+.pipe li.nopasa .ic{color:var(--crit)}
+.pipe li.cortado{border-left-color:var(--mute);background:var(--soft)}
+.pipe li.cortado .ev{color:var(--mute);text-decoration:line-through;font-weight:500}
+.pipe li.otro{border-left-color:var(--serious)}
+.resp{border-radius:10px;padding:6px 10px;border:1px solid var(--line);border-left-width:4px;min-width:0}
+.resp .k{font-size:10.5px;color:var(--ink2);text-transform:uppercase;letter-spacing:.05em}
+.resp .v{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.resp .s{font-size:11.5px;color:var(--ink2)}
+.resp.red{border-left-color:var(--good);background:color-mix(in srgb,var(--good) 14%,var(--card))}
+.resp.precalculado{border-left-color:var(--warn);background:color-mix(in srgb,var(--warn) 18%,var(--card))}
+.resp.ejemplo{border-style:dashed;border-left-style:solid;border-left-color:var(--mute)}
+.resp.nada,.resp.otro{border-left-color:var(--mute);background:var(--soft)}
+.caso .pie{grid-column:1/-1;font-size:12px;color:var(--ink2);display:flex;flex-direction:column;gap:3px;border-top:1px solid var(--line);padding-top:6px}
+.caso .pie .fact b{color:var(--ink)}
+.caso .pie .disc{border-left:3px solid var(--warn);background:color-mix(in srgb,var(--warn) 16%,var(--card));border-radius:5px;padding:2px 8px;color:var(--ink)}
+@media (max-width:900px){
+  .caso{grid-template-columns:1fr}
+  .pipe{grid-template-columns:repeat(3,1fr)}
+  .pipe li+li::before{display:none}
+}
+
+/* Entrenamiento */
+.train{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.macs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:700px){.macs{grid-template-columns:1fr}}
+.mac b{font-size:14px} .mac .sub{color:var(--mute);font-size:11.5px;margin-left:6px}
+.mac .what{font-size:13px;margin-top:2px}
+.prog{height:8px;border-radius:4px;background:var(--soft);margin-top:5px;overflow:hidden}
+.prog i{display:block;height:100%;background:var(--info);border-radius:4px}
+.cal{margin-top:12px;border-top:1px solid var(--line);padding-top:8px}
+.calaxis{position:relative;height:15px;font-size:10.5px;color:var(--mute);margin-left:44px}
+.calaxis span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.calrow{display:flex;align-items:center;margin-top:4px}
+.clab{width:44px;flex:none;font-size:12px;font-weight:600;white-space:nowrap}
+.caltrack{position:relative;flex:1;height:24px;background:var(--soft);border-radius:5px;min-width:0}
+.blk{position:absolute;top:2px;bottom:2px;border-radius:4px;font-size:11px;line-height:18px;padding:0 5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;border:1px solid var(--line);border-left-width:3px;color:var(--ink)}
+.blk.pasado{background:var(--card);border-left-color:var(--mute);color:var(--ink2)}
+.blk.ahora{background:color-mix(in srgb,var(--info) 18%,var(--card));border-color:var(--info)}
+.blk.futuro{background:var(--card);border-style:dashed;border-left-style:solid;border-left-color:var(--mute)}
+.blk.val{border-left-color:var(--serious)}
+.calmark{position:absolute;top:-2px;bottom:-2px;border-left:2px solid var(--ink);opacity:.55}
+.calnow{position:absolute;top:-3px;bottom:-3px;border-left:2px solid var(--crit);z-index:2}
+.calnote{font-size:11.5px;color:var(--ink2);margin-top:6px}
+
+/* Los tres computadores */
 .roles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 @media (max-width:900px){.roles{grid-template-columns:1fr}}
 .role{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;border-top:4px solid var(--line);transition:box-shadow .4s;min-width:0}
-.role.ok{border-top-color:var(--ok)} .role.warn{border-top-color:var(--warn)} .role.bad{border-top-color:var(--bad)}
+.role.ok{border-top-color:var(--good)} .role.warn{border-top-color:var(--warn)} .role.bad{border-top-color:var(--crit)}
 .role.flash{box-shadow:0 0 0 3px var(--info)}
 .role .head{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
 .role .head b{font-size:15px}
 .role .sem{font-size:13px;white-space:nowrap}
 .row{display:grid;grid-template-columns:52px 1fr;gap:6px;margin-top:6px;font-size:13px}
-.row .k{color:var(--mute);font-size:12px;padding-top:1px}
+.row .k{color:var(--ink2);font-size:12px;padding-top:1px}
 .row .v{min-width:0;overflow-wrap:anywhere}
-.prog{height:6px;border-radius:3px;background:var(--line);margin-top:4px;overflow:hidden}
-.prog i{display:block;height:100%;background:var(--info)}
-.role .meta{font-size:12px;color:var(--mute);margin-top:8px}
+.role .meta{font-size:12px;color:var(--ink2);margin-top:8px}
 details{margin-top:8px;font-size:12.5px}
-details summary{cursor:pointer;color:var(--mute);font-size:12px}
+details summary{cursor:pointer;color:var(--ink2);font-size:12px}
 details ul{margin:4px 0 0;padding-left:16px} details li{margin:2px 0}
 
 /* Plan del sábado */
@@ -69,56 +144,73 @@ details ul{margin:4px 0 0;padding-left:16px} details li{margin:2px 0}
 .gaxis{position:relative;height:16px;font-size:11px;color:var(--mute)}
 .gaxis span{position:absolute;transform:translateX(-50%);white-space:nowrap}
 .ghitos{position:relative;height:18px;font-size:10.5px}
-.ghitos span{position:absolute;transform:translateX(-50%);white-space:nowrap;color:var(--mute);background:var(--card);padding:0 3px;border-radius:3px}
+.ghitos span{position:absolute;transform:translateX(-50%);white-space:nowrap;color:var(--ink2);background:var(--card);padding:0 3px;border-radius:3px}
 .ghitos span.fin{color:var(--ink);font-weight:600}
 .grow{display:flex;border-top:1px solid var(--line)}
 .lab{position:sticky;left:0;z-index:4;width:64px;flex:none;background:var(--card);border-right:1px solid var(--line);padding:4px 8px;font-size:12px;display:flex;flex-direction:column;justify-content:center}
-.lab b{font-size:12px} .lab small{color:var(--mute);font-size:10.5px;font-variant-numeric:tabular-nums}
+.lab b{font-size:12px} .lab small{color:var(--ink2);font-size:10.5px;font-variant-numeric:tabular-nums}
 .track{position:relative;flex:1}
-.bar{position:absolute;height:20px;border-radius:4px;font-size:10.5px;line-height:20px;padding:0 4px;overflow:hidden;white-space:nowrap;color:#fff;cursor:default}
-.bar.hecha{background:var(--done)} .bar.adelantada{background:var(--ahead)}
-.bar.curso{background:var(--info)} .bar.ahora{background:transparent;color:var(--info);border:2px solid var(--info);line-height:16px}
-.bar.pasada{background:var(--warn)} .bar.atrasada{background:var(--bad)}
-.bar.pendiente{background:transparent;color:var(--mute);border:1px dashed var(--mute);line-height:18px}
-.bar.siguiente{background:transparent;color:var(--info);border:1px dashed var(--info);line-height:18px;font-weight:600}
+.bar{position:absolute;height:20px;border-radius:4px;font-size:10.5px;line-height:18px;padding:0 4px;overflow:hidden;white-space:nowrap;color:var(--ink);cursor:default;border:1px solid var(--line);border-left-width:3px;font-variant-numeric:tabular-nums}
+.bar.hecha{background:var(--soft);border-left-color:var(--mute);color:var(--ink2)}
+.bar.adelantada{background:color-mix(in srgb,var(--good) 16%,var(--card));border-color:color-mix(in srgb,var(--good) 45%,var(--line));border-left-color:var(--good)}
+.bar.curso{background:color-mix(in srgb,var(--info) 20%,var(--card));border-color:var(--info);font-weight:600}
+.bar.ahora{background:var(--card);border-color:var(--info)}
+.bar.siguiente{background:var(--card);border:1px dashed var(--info);border-left:3px solid var(--info);font-weight:600}
+.bar.pasada{background:color-mix(in srgb,var(--warn) 24%,var(--card));border-color:color-mix(in srgb,var(--warn) 60%,var(--line));border-left-color:var(--warn)}
+.bar.atrasada{background:color-mix(in srgb,var(--crit) 18%,var(--card));border-color:color-mix(in srgb,var(--crit) 55%,var(--line));border-left-color:var(--crit);font-weight:600}
+.bar.pendiente{background:var(--card);border:1px dashed var(--mute);border-left:3px solid var(--mute);color:var(--ink2)}
 .overlay{position:absolute;top:0;bottom:0;pointer-events:none}
 .vline{position:absolute;top:0;bottom:0;border-left:1px dashed var(--mute);opacity:.7}
 .vline.fin{border-left:2px solid var(--ink);opacity:.5}
-.vline.now{border-left:2px solid var(--bad);opacity:1;z-index:3}
-.vline.now span{position:absolute;bottom:-17px;left:-19px;width:38px;text-align:center;font-size:10px;color:#fff;background:var(--bad);border-radius:3px;font-variant-numeric:tabular-nums}
-.sleep{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,transparent 0 6px,var(--soft) 6px 12px)}
+.vline.now{border-left:2px solid var(--crit);opacity:1;z-index:3}
+.vline.now span{position:absolute;bottom:-17px;left:-19px;width:38px;text-align:center;font-size:10px;color:#fff;background:var(--crit);border-radius:3px;font-variant-numeric:tabular-nums}
 .gfoot{height:20px}
-.night{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;padding:8px 12px 0;font-size:12px;border-top:1px solid var(--line)}
-.night .t{color:var(--mute)}
-.night .grp{display:flex;gap:4px;align-items:center;flex-wrap:wrap}
-.chip{font-size:10.5px;border-radius:4px;padding:0 5px;line-height:18px;color:#fff}
-.chip.hecha,.chip.adelantada{background:var(--done)} .chip.curso{background:var(--info)}
-.chip.pendiente{color:var(--mute);border:1px dashed var(--mute);line-height:16px}
-.chip.siguiente{color:var(--info);border:1px dashed var(--info);line-height:16px}
-.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--mute);padding:8px 12px 0}
-.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11px;color:var(--ink2);padding:8px 12px 0}
+.legend b{font-weight:700;color:var(--ink);margin-right:3px}
+.gantt>details{padding:0 12px}
+.gempty{padding:14px 12px;color:var(--ink2);font-size:13px}
+table.t{border-collapse:collapse;width:100%;font-size:12px;margin-top:6px}
+table.t td,table.t th{border-bottom:1px solid var(--line);padding:3px 6px;text-align:left;vertical-align:top}
+table.t th{color:var(--ink2);font-weight:600}
+.tw{overflow-x:auto}
+.agenda{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 12px;margin-top:8px;display:grid;grid-template-columns:repeat(2,1fr);gap:0 18px}
+@media (max-width:700px){.agenda{grid-template-columns:1fr}}
+.agenda div{display:flex;gap:8px;padding:3px 0;font-size:13px;border-bottom:1px solid var(--line);min-width:0}
+.agenda .h{width:92px;flex:none;color:var(--ink2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.agenda .paso{color:var(--mute)} .agenda .paso .h{color:var(--mute)}
+.agenda .sig{font-weight:600}
 
 .feed{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 14px}
 .feed div{padding:5px 0;border-bottom:1px solid var(--line);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .feed div:last-child{border-bottom:0}
-.feed .when{color:var(--mute);font-size:12px;font-variant-numeric:tabular-nums;margin-right:6px}
-.feed .note{color:var(--mute);font-size:12px}
-.tag{display:inline-block;font-size:10px;border-radius:4px;padding:0 5px;margin-right:6px;color:#fff;vertical-align:1px}
-.tag.producto{background:#8b5cf6}.tag.amortizacion{background:#0e9f9a}.tag.seguimiento{background:#e07a1f}.tag.otro{background:var(--done)}
+.feed .when{color:var(--ink2);font-size:12px;font-variant-numeric:tabular-nums;margin-right:6px}
+.feed .note{color:var(--ink2);font-size:12px;white-space:normal}
+.tag{display:inline-block;font-size:10px;border-radius:4px;padding:0 5px;margin-right:6px;color:var(--ink2);border:1px solid var(--line);vertical-align:1px;min-width:34px;text-align:center}
 .full{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 14px;margin-top:20px}
 .full .md h2{font-size:14px;text-transform:none;letter-spacing:0;color:var(--ink);display:block}
 .full table{border-collapse:collapse;display:block;overflow-x:auto}
 .full td,.full th{border:1px solid var(--line);padding:3px 6px;text-align:left;vertical-align:top}
+#tip{position:fixed;z-index:50;max-width:min(340px,calc(100vw - 16px));background:var(--ink);color:var(--card);font-size:12px;line-height:1.35;border-radius:6px;padding:6px 8px;white-space:pre-line;pointer-events:none;box-shadow:0 2px 10px rgba(0,0,0,.25)}
+[data-tip]{cursor:default}
 </style>
 </head>
 <body>
 <main>
   <div class="top">
-    <h1>Krylov · cómo vamos</h1>
-    <div class="sync"><span class="dot busy" id="dot"></span><span id="sync">Cargando…</span><button class="lnk" id="btn" title="Revisar ahora">↻</button></div>
+    <h1>Krylov · minería · cómo vamos</h1>
+    <div class="sync"><span class="dot busy" id="dot"></span><span id="sync">Cargando…</span>
+      <button class="lnk" id="btn" title="Revisar ahora">↻</button>
+      <button class="lnk" id="tema" title="Cambiar entre claro, oscuro y automático">tema</button></div>
   </div>
+  <div id="banner"></div>
   <div class="tiles" id="tiles"></div>
   <div class="alerts" id="alerts"></div>
+
+  <h2>Las cinco decisiones <small id="resumen"></small></h2>
+  <div class="casos" id="casos"></div>
+
+  <h2>Entrenamiento <small>un entrenamiento por computador</small></h2>
+  <div class="train" id="train"></div>
 
   <h2>Los tres computadores</h2>
   <div class="roles" id="roles"></div>
@@ -126,41 +218,79 @@ details ul{margin:4px 0 0;padding-left:16px} details li{margin:2px 0}
   <h2>Plan del sábado <small><button class="lnk" id="goNow">ir a ahora</button></small></h2>
   <div class="gantt">
     <div class="gscroll" id="gscroll"><div class="gin" id="gantt"></div></div>
-    <div class="night" id="night"></div>
     <div class="legend">
-      <span><i style="background:var(--done)"></i>hecha</span>
-      <span><i style="background:var(--ahead)"></i>hecha antes de su hora</span>
-      <span><i style="background:var(--info)"></i>en curso</span>
-      <span><i style="border:1px dashed var(--info)"></i>la siguiente</span>
-      <span><i style="border:2px solid var(--info)"></i>en su horario, sin empezar</span>
-      <span><i style="background:var(--warn)"></i>pasada de hora</span>
-      <span><i style="background:var(--bad)"></i>atrasada (más del doble)</span>
-      <span><i style="border:1px dashed var(--mute)"></i>pendiente</span>
+      <span><b>✓</b>hecha</span>
+      <span><b>✓✓</b>hecha antes de su hora</span>
+      <span><b>▶</b>en curso</span>
+      <span><b>→</b>la siguiente</span>
+      <span><b>◷</b>en su horario, sin empezar</span>
+      <span><b>!</b>pasada de hora</span>
+      <span><b>‼</b>atrasada (más del doble)</span>
+      <span><b>·</b>pendiente</span>
     </div>
+    <details id="tablaPlan"><summary>Ver el plan como tabla</summary><div class="tw" id="tabla"></div></details>
   </div>
+  <div class="agenda" id="agenda"></div>
 
   <h2>Últimos commits</h2>
   <div class="feed" id="feed"></div>
 
   <details class="full" id="fullTab"><summary>Tablero completo (estado/TABLERO.md)</summary><div class="md" id="tablero"></div></details>
 </main>
+<div id="tip" hidden></div>
 
 <script>
 // PARSE-START
+// Todo lo de este bloque es puro (sin página): se prueba con node contra los archivos del repositorio.
 const REPO = 'platanus-hack/platanus-hack-26-cl-team-5';
 const ROLES = [
   {id:'producto', pc:'PC 1', pre:'P', file:'estado/producto.md'},
   {id:'amortizacion', pc:'PC 2', pre:'A', file:'estado/amortizacion.md'},
   {id:'seguimiento', pc:'PC 3', pre:'S', file:'estado/seguimiento.md'},
 ];
+const MOTORES = ['espacial', 'deformacion', 'cinetica', 'desgaste', 'sismico'];
+const CASOS_INFO = {
+  leyes:      {titulo:'Leyes y arsénico',  pregunta:'¿Este bloque va a la planta o se aparta?'},
+  taludes:    {titulo:'Taludes y relaves', pregunta:'¿Es ruido o el muro va a ceder?'},
+  flotacion:  {titulo:'Flotación',         pregunta:'¿Se me está yendo cobre al relave?'},
+  flota:      {titulo:'Flota de camiones', pregunta:'¿Qué camión paro antes de que falle?'},
+  sismicidad: {titulo:'Sismicidad',        pregunta:'¿Puede volver a entrar la gente?'},
+};
+const ETAPAS = [['datos','Datos'], ['simulador','Simulador'], ['lento','Método lento'], ['red','Red'], ['sello','Sello'], ['app','En la app']];
+// Calendario de cómputo de WORKPLAN.md, 6.3 (D-37). Fijo: si el plan lo cambia, se cambia aquí.
+const RONDAS = [
+  {nombre:'Ronda 1',    t0:'14:30', t1:'16:10', tipo:'ronda', pc2:'cinetica', pc3:'deformacion'},
+  {nombre:'Validación', t0:'16:10', t1:'16:30', tipo:'val',   pc2:'validar cinetica', pc3:'validar deformacion'},
+  {nombre:'Ronda 2',    t0:'16:30', t1:'18:15', tipo:'ronda', pc2:'desgaste', pc3:'sismico'},
+  {nombre:'Validación', t0:'18:15', t1:'19:00', tipo:'val',   pc2:'validar desgaste', pc3:'validar sismico'},
+];
+const AGENDA = [
+  ['sáb 18:00', 'Producto terminado: tag congelado y recorrido completo con cronómetro'],
+  ['sáb 18:30', 'Ensayo 1, con el computador y el cable de la presentación'],
+  ['sáb 19:00', 'Prueba con tres extraños'],
+  ['sáb 20:00', 'Charla «Cómo hacer un buen demo»'],
+  ['sáb 20:30', 'Tope de redes: desde aquí no cambia quién responde cada tarjeta'],
+  ['sáb 21:00', 'Ensayo 2, con las preguntas difíciles'],
+  ['sáb 22:00', 'Video de respaldo y README técnico'],
+  ['sáb 23:00', 'Entrega revisada'],
+  ['dom 06:30', 'Ensayo'],
+  ['dom 07:30', 'Ensayo'],
+  ['dom 08:00', 'Entrega: tag entrega (los repositorios cierran a las 08:30)'],
+  ['dom 09:30', 'Pitch: presentaciones generales'],
+];
 const DAY0 = Date.parse('2026-11-21T00:00:00-03:00'); // sábado 00:00, Santiago (UTC-3)
-const toMin = s => { const m = /(\d{1,2}):(\d{2})/.exec(s||''); return m ? +m[1]*60 + +m[2] : null; };
-const fmt = m => String(Math.floor(m/60)%24).padStart(2,'0') + ':' + String(Math.round(m%60)).padStart(2,'0');
-const TIME_PREFIX = /^[a-záéíóú]{3}\s+\d{1,2}:\d{2}\s*·\s*/i;
+const DIA = 1440;
+
+// «12:30» → 750; «dom 08:00» o «domingo 08:00» → 1920 (minutos desde el sábado a las 00:00).
+const toMin = s => { const m = /(\d{1,2}):(\d{2})/.exec(s || ''); return m ? +m[1]*60 + +m[2] + (/\bdom/i.test(s) ? DIA : 0) : null; };
+const fmt = m => String(Math.floor(m/60)%24).padStart(2,'0') + ':' + String(Math.floor(m%60)).padStart(2,'0');
+const fmtDia = m => (m >= DIA ? 'dom ' : '') + fmt(m);
+const norm = s => (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').trim();
+const plain = s => (s || '').replace(/\*\*|`|\*/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');
 
 function sections(md){
   const out = {}; let cur = '_';
-  for (const line of md.split('\n')){
+  for (const line of (md || '').split('\n')){
     const h = /^##\s+(.+)$/.exec(line);
     if (h){ cur = h[1].trim(); out[cur] = []; continue; }
     (out[cur] ||= []).push(line);
@@ -168,20 +298,45 @@ function sections(md){
   for (const k in out) out[k] = out[k].join('\n').trim();
   return out;
 }
-const bullets = txt => (txt||'').split('\n').filter(l => /^\s*-\s+/.test(l)).map(l => l.replace(/^\s*-\s+/,''));
+const seccion = (secs, re) => (Object.entries(secs).find(([k]) => re.test(k)) || [])[1] || '';
+const bullets = txt => (txt || '').split('\n').filter(l => /^\s*-\s+/.test(l)).map(l => l.replace(/^\s*-\s+/, ''));
 const isEmpty = txt => { const b = bullets(txt); return b.length === 0 || b.every(x => /^\(?ninguno\)?/i.test(x.trim())); };
-const plain = s => (s||'').replace(/\*\*|`|\*/g, '').replace(/\[([^\]]+)\]\([^)]*\)/g, '$1');
+const filasDeTabla = txt => (txt || '').split('\n').filter(l => /^\s*\|/.test(l))
+  .map(l => l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim()))
+  .filter(r => !r.every(c => /^[-: ]*$/.test(c)));
 
+// Quita del inicio de una línea el día, la fecha y la hora, en cualquier orden y con cualquier separador:
+// «sáb 12:40 · S-21 …», «09:55:17 A-09 …», «sáb 21-nov 12:40: …». Devuelve el resto y la hora en minutos.
+function stripLead(s){
+  let t = plain(s).trim(), min = null, dom = false, prev;
+  do {
+    prev = t;
+    t = t.replace(/^[\s·\-–—,|:]+/, '');
+    let m;
+    if ((m = /^(lun|mar|mi[eé]|jue|vie|s[aá]b|dom)\b\.?/i.exec(t))){ if (/^dom/i.test(m[0])) dom = true; t = t.slice(m[0].length); continue; }
+    if ((m = /^\d{1,2}-[a-záéíóú]{3,4}\b/i.exec(t))){ t = t.slice(m[0].length); continue; }
+    if ((m = /^(\d{1,2}):(\d{2})(?::\d{2})?(?!\d)/.exec(t))){ if (min === null) min = +m[1]*60 + +m[2]; t = t.slice(m[0].length); continue; }
+  } while (t !== prev);
+  return {text: t, min: min === null ? null : min + (dom ? DIA : 0)};
+}
+// El sujeto de una línea: hasta el primer punto o dos puntos, saltando «Sesión A:» o «La persona.».
+function subject(text){
+  const parts = text.split(/[.:]/);
+  let i = 0;
+  while (i < parts.length - 1 && /^\s*(sesi[oó]n\s+\S+|la persona|una persona)\s*$/i.test(parts[i])) i++;
+  return parts[i].slice(0, 90);
+}
 // Una línea larga de markdown → una frase corta: sin hora, sin formato, hasta el primer punto, máx. n caracteres.
 function short(s, n = 90){
-  let t = plain((s||'').replace(TIME_PREFIX, '')).trim();
+  let t = stripLead(s).text;
   t = t.split(/\.\s+(?=[A-ZÁÉÍÓÚ¿(])/)[0].replace(/\.$/, '');
   if (t.length > n) t = t.slice(0, n).replace(/\s+\S*$/, '') + '…';
   return t;
 }
-const timeOf = s => (/^[a-záéíóú]{3}\s+(\d{1,2}:\d{2})/i.exec(s||'') || [])[1] || '';
+const timeOf = s => { const m = stripLead(s).min; return m === null ? '' : fmt(m); };
 
-// Ids de tareas: P-01, A-B3, S-N2, S-05b, y rangos «A-01 a A-04», «A-B1 a A-B4».
+// Ids de tareas: P-21, A-23, S-05b, y rangos «A-24 a A-26».
+const idNum = id => parseInt((/(\d+)/.exec(id) || [])[1] || '0', 10);
 function mentionedIds(txt){
   const ids = new Set();
   const re = /\b([PAS])-([A-Z]?)(\d+)([a-z]?)\b(?:\s*(?:a|al|-|–)\s*\1-\2(\d+)\b)?/g;
@@ -189,34 +344,30 @@ function mentionedIds(txt){
   while ((m = re.exec(plain(txt)))){
     const a = +m[3], w = m[3].length;
     if (!m[5]){ ids.add(`${m[1]}-${m[2]}${m[3]}${m[4]}`); continue; }
-    for (let i = a; i <= Math.min(+m[5], a+30); i++) ids.add(`${m[1]}-${m[2]}${String(i).padStart(w,'0')}`);
+    for (let i = a; i <= Math.min(+m[5], a + 30); i++) ids.add(`${m[1]}-${m[2]}${String(i).padStart(w, '0')}`);
   }
   return ids;
 }
-// Hecha = el id aparece en el sujeto de una línea de «Hecho» (antes del primer punto o dos puntos).
-// Devuelve id → minuto en que se anotó (o null si la línea no trae hora).
+// Hecha = el id va en el sujeto de una línea de «Hecho» (antes del primer punto o dos puntos),
+// con o sin hora delante. Devuelve id → minuto en que se anotó (o null si la línea no trae hora).
 function doneIds(hecho){
   const ids = new Map();
   for (const b of bullets(hecho)){
-    const head = plain(b.replace(TIME_PREFIX,'')).split(/[.:]/)[0].slice(0,70);
-    const t = toMin(timeOf(b));
-    for (const id of mentionedIds(head)) if (!ids.has(id)) ids.set(id, t);
+    const {text, min} = stripLead(b);
+    for (const id of mentionedIds(subject(text))) if (!ids.has(id)) ids.set(id, min);
   }
   return ids;
 }
-// «En curso», con la misma convención que «Hecho»: está en curso el id que va en el sujeto de la línea
-// (antes del primer punto o dos puntos; «Sesión A: A-08 …» mira la frase que sigue a «Sesión A»).
-// Lo que va después de «Sigue», «Siguiente», «Después»… en la misma frase es «la siguiente».
-// Lo que se nombra como ya hecho («A-01 a A-04 hechas») no cuenta, y el resto de la línea tampoco.
+// «En curso», con la misma convención: está en curso el id que va en el sujeto de la línea.
+// Lo que va después de «Sigue», «Siguiente», «Después»… es «la siguiente».
 const NEXT_WORD = /\b(sigue|siguiente|despu[eé]s|luego|pr[oó]xim[ao])\b/i;
 const DONE_WORD = /\bhech[ao]s?\b|\bterminad[ao]s?\b/i;
-const isNextLine = b => /^(sigue|siguiente|despu[eé]s|luego|pr[oó]xim[ao])\b/i.test(plain(b.replace(TIME_PREFIX,'')).trim());
+const isNextLine = b => /^(sigue|siguiente|despu[eé]s|luego|pr[oó]xim[ao])\b/i.test(stripLead(b).text);
 function progressIds(txt){
   const prog = new Set(), next = new Set();
   for (const b of bullets(txt)){
-    const t = plain(b.replace(TIME_PREFIX,'')).trim();
-    let head = t.split(/[.:]/)[0];
-    if (/^sesi[oó]n\s+\S+$/i.test(head.trim())) head = t.slice(head.length + 1).split(/[.;]/)[0];
+    const t = stripLead(b).text;
+    const head = subject(t);
     if (!isNextLine(b) && !DONE_WORD.test(head)){
       const cut = NEXT_WORD.exec(head);
       mentionedIds(cut ? head.slice(0, cut.index) : head).forEach(id => prog.add(id));
@@ -232,73 +383,150 @@ function progressIds(txt){
 // El texto que sigue a «Sigue» / «Siguiente» en la línea más reciente de «En curso» que lo tenga.
 function nextText(txt){
   for (const b of bullets(txt).reverse()){
-    const m = /\b(?:sigue|siguiente)\b\s*(?:\([^)]*\))?\s*:?\s*(.+)$/i.exec(plain(b.replace(TIME_PREFIX,'')));
-    if (m) return {t: toMin(timeOf(b)), text: m[1]};
+    const {text, min} = stripLead(b);
+    const m = /\b(?:sigue|siguiente)\b\s*(?:\([^)]*\))?\s*:?\s*(.+)$/i.exec(text);
+    if (m) return {t: min, text: m[1]};
   }
   return null;
 }
+// Filas «| P-21 | 12:30 | 40 | Tarea | Entregable | Listo cuando |». Solo las del pivote (número ≥ 21).
 function parseTasks(workplan){
-  const tasks = [];
-  for (const line of workplan.split('\n')){
-    const m = /^\|\s*([PAS]-[A-Z0-9]+[a-z]?)\s*\|([^|]*)\|([^|]*)\|([^|]*)\|/.exec(line);
-    if (!m) continue;
-    const when = m[2].trim(), start = /^\d{1,2}:\d{2}$/.test(when) ? toMin(when) : null, dur = parseInt(m[3]) || null;
-    const desc = plain(start === null && when.length > 12 ? when : m[4]).trim();
-    if (/^cortad[ao]/i.test(desc)) continue; // P-12 y similares: ya no existen
-    tasks.push({id:m[1], when, start, dur, desc, night: start === null});
+  const tasks = [], seen = new Set();
+  for (const line of (workplan || '').split('\n')){
+    const m = /^\|\s*([PAS]-[A-Z]?\d+[a-z]?)\s*\|([^|]*)\|([^|]*)\|([^|]*)\|/.exec(line);
+    if (!m || idNum(m[1]) < 21 || seen.has(m[1])) continue;
+    seen.add(m[1]);
+    const when = m[2].trim(), start = toMin(when), dur = parseInt(m[3]) || null;
+    const desc = plain(m[4]).trim();
+    if (/^cortad[ao]/i.test(desc)) continue;
+    tasks.push({id: m[1], when, start, dur, desc});
   }
   return tasks;
 }
+// «**H4 · sábado 14:30 · ¿Arrancó el pivote?**», «**H4 · 14:30**» y «**Tope de redes · sábado 20:30.**».
+// H0 a H3 son de antes del pivote y no se dibujan.
 function parseHitos(workplan){
   const h = {}; let m;
-  const re1 = /\*\*(H\d)\s*·\s*(\d{1,2}:\d{2})\*\*/g;
-  while ((m = re1.exec(workplan))) h[m[1]] = {id:m[1], t:toMin(m[2])};
-  const re2 = /\*\*(H\d)\s*·[^·*]+·\s*([^*]+)\*\*/g;
-  while ((m = re2.exec(workplan))) if (h[m[1]]) h[m[1]].q = m[2].trim();
-  const d = /\*\*Antes de dormir\s*·\s*(\d{1,2}:\d{2})/.exec(workplan);
-  const list = Object.values(h);
-  if (d) list.push({id:'dormir', t:toMin(d[1]), q:'Antes de dormir'});
-  return list.filter(x => x.t !== null).sort((a,b) => a.t - b.t);
+  const re = /\*\*(H\d+)\s*·\s*(?:(s[áa]bado|domingo)\s+)?(\d{1,2}):(\d{2})(?:\s*·\s*([^*]+?))?\.?\*\*/g;
+  while ((m = re.exec(workplan || ''))){
+    if (+m[1].slice(1) < 4) continue;
+    const t = +m[3]*60 + +m[4] + (m[2] && /^dom/.test(m[2]) ? DIA : 0);
+    h[m[1]] = {id: m[1], t, q: (m[5] || h[m[1]]?.q || '').trim()};
+  }
+  const tope = /\*\*Tope de redes\s*·\s*(?:(s[áa]bado|domingo)\s+)?(\d{1,2}):(\d{2})/.exec(workplan || '');
+  if (tope) h.tope = {id: 'Tope de redes', t: +tope[2]*60 + +tope[3] + (tope[1] && /^dom/.test(tope[1]) ? DIA : 0), q: 'Última hora para pasar un motor a «red»'};
+  return Object.values(h).sort((a, b) => a.t - b.t);
+}
+// Tabla «## Los cinco casos» del tablero.
+const ESTADOS = [['listo','listo'], ['en curso','curso'], ['pendiente','pendiente'], ['no pasa','nopasa'], ['cortado','cortado']];
+function estadoEtapa(v){
+  const n = norm(plain(v));
+  const e = ESTADOS.find(([k]) => n.startsWith(k));
+  return {cls: e ? e[1] : 'otro', texto: plain(v).trim() || '—'};
+}
+function quienResponde(v){
+  const n = norm(plain(v));
+  const k = ['red', 'precalculado', 'ejemplo', 'nada'].find(x => n.startsWith(x));
+  return {cls: k || 'otro', texto: plain(v).trim() || '—'};
+}
+function parseCasos(tablero){
+  const rows = filasDeTabla(seccion(sections(tablero), /^Los cinco casos/i));
+  if (rows.length < 2) return [];
+  const head = rows[0].map(c => norm(plain(c)));
+  const col = name => head.findIndex(h => h.startsWith(name));
+  const ix = {caso: col('caso'), motor: col('motor'), datos: col('datos'), simulador: col('simulador'), lento: col('metodo lento'),
+              red: col('red'), sello: col('sello'), app: col('en la app'), responde: col('responde')};
+  if (ix.caso < 0) return [];
+  const cel = (r, k) => ix[k] >= 0 ? (r[ix[k]] || '') : '';
+  return rows.slice(1).map(r => {
+    const nombre = norm(plain(cel(r, 'caso')));
+    const info = CASOS_INFO[nombre] || {titulo: plain(cel(r, 'caso')), pregunta: ''};
+    const etapas = {}; ETAPAS.forEach(([k]) => etapas[k] = estadoEtapa(cel(r, k)));
+    return {nombre, titulo: info.titulo, pregunta: info.pregunta, motor: norm(plain(cel(r, 'motor'))), etapas,
+            responde: quienResponde(cel(r, 'responde')), fila: r.join('|')};
+  }).filter(c => c.nombre);
+}
+function resumenCasos(casos){
+  const n = k => casos.filter(c => c.responde.cls === k).length;
+  return {total: casos.length, red: n('red'), precalculado: n('precalculado'), ejemplo: n('ejemplo'), nada: n('nada') + n('otro')};
+}
+// Lo medido de un sello.json. `pasa` manda; si no viene, `sbc_pasa`. Un sello de ensayo no cuenta.
+function selloFacts(s){
+  if (!s || typeof s !== 'object') return null;
+  const pasa = typeof s.pasa === 'boolean' ? s.pasa : typeof s.sbc_pasa === 'boolean' ? s.sbc_pasa : null;
+  const v = k => (s[k] === undefined ? null : s[k]);
+  return {pasa, ensayo: !!s.ensayo, vale: pasa === true && !s.ensayo, sims: v('simulaciones_entrenamiento'), min: v('entrenamiento_min'),
+          cob: v('cobertura_90'), lat: v('latencia_ms'), mcmc: v('mcmc_s_por_dataset'), maquina: v('maquina'), fecha: v('fecha')};
+}
+// Lo que dice el tablero contra lo que hay en main.
+function discrepancias(caso, f){
+  const d = [], vale = !!(f && f.vale), sello = caso.etapas.sello;
+  if (sello.cls === 'listo' && !vale) d.push(`El tablero dice «Sello: listo», pero en main no hay un sello.json de ${caso.motor} con pasa: true.`);
+  if (vale && sello.cls !== 'listo') d.push(`Hay un sello.json de ${caso.motor} con pasa: true y el tablero todavía dice «Sello: ${sello.texto}».`);
+  if (f && f.pasa === false && sello.cls !== 'nopasa' && sello.cls !== 'listo') d.push(`El sello.json de ${caso.motor} dice que no pasa y el tablero dice «Sello: ${sello.texto}».`);
+  if (caso.responde.cls === 'red' && !vale) d.push('Dice que responde la red, pero su motor no tiene un sello que pase.');
+  return d;
+}
+function parseSemaforo(tablero){
+  const sem = {};
+  for (const c of filasDeTabla(seccion(sections(tablero), /^Semáforo/i))){
+    const r = ROLES.find(r => c[0] && c[0].toLowerCase().startsWith(r.id));
+    if (r) sem[r.id] = {estado: c[1] || '', nota: c[2] || '', cls: /🔴/.test(c[1]) ? 'bad' : /🟡|🟠/.test(c[1]) ? 'warn' : /🟢/.test(c[1]) ? 'ok' : ''};
+  }
+  return sem;
+}
+// La línea es del computador que va en su encabezado («**PC 2 · amortizacion:** …»), no del primero que nombre.
+function parseSiguiente(tablero){
+  const sig = {};
+  for (const b of bullets(seccion(sections(tablero), /^Siguiente tarea/i))){
+    const pc = /^\*\*\s*(PC\s*\d)/.exec(b)?.[1]?.replace(/\s+/, ' ');
+    const r = ROLES.find(r => r.pc === pc);
+    if (r && !sig[r.id]) sig[r.id] = b.replace(/^\*\*[^*]*\*\*\s*/, '');
+  }
+  return sig;
+}
+const parseUpdated = tablero => { const s = /\*\*Actualizado:\*\*\s*([^·\n]+)/.exec(tablero || '')?.[1] || ''; return {texto: s.trim(), t: toMin(s)}; };
+// Tabla «## Entrenamiento en curso» de un estado → {motor, desde, hasta}, o null si no hay nada entrenando.
+function training(txt){
+  if (!txt) return null;
+  const rows = {};
+  for (const c of filasDeTabla(txt)) if (c.length >= 2) rows[norm(plain(c[0]))] = c[1];
+  const key = k => Object.keys(rows).find(x => x.startsWith(k));
+  const celda = rows[key('motor')] || '';
+  if (!celda || /^\(?\s*(ninguno|nada)\b/i.test(plain(celda).trim())) return null;
+  const motor = (/`([^`]+)`/.exec(celda) || [])[1];
+  if (!motor) return null;
+  const desde = toMin(rows[key('hora de inicio')] || '');
+  const hasta = toMin((/--hasta\s+(\d{1,2}:\d{2})/.exec(txt) || [])[1] || (/hasta las (\d{1,2}:\d{2})/.exec(txt) || [])[1] || '');
+  return {motor, desde, hasta};
 }
 // D-29: las horas del plan son topes. Una tarea hecha antes de su hora es «adelantada».
 function status(task, done, prog, next, now){
   if (done.has(task.id)){
     const t = done.get(task.id);
-    return !task.night && t !== null && t < task.start ? 'adelantada' : 'hecha';
+    return task.start !== null && t !== null && t < task.start ? 'adelantada' : 'hecha';
   }
   if (prog.has(task.id)) return 'curso';
-  if (task.night) return next.has(task.id) ? 'siguiente' : 'pendiente';
+  if (task.start === null) return next.has(task.id) ? 'siguiente' : 'pendiente';
   const d = task.dur || 30;
   if (now >= task.start + 2*d) return 'atrasada';
   if (now >= task.start + d) return 'pasada';
   if (now >= task.start) return 'ahora';
   return next.has(task.id) ? 'siguiente' : 'pendiente';
 }
-// Tabla «Entrenamiento en curso» → {motor, desde, hasta}
-function training(txt){
-  if (!txt) return null;
-  const rows = {};
-  for (const l of txt.split('\n')){ const c = l.split('|').map(x => x.trim()); if (c.length > 3) rows[c[1]] = c[2]; }
-  const motorK = Object.keys(rows).find(k => /^Motor/.test(k)), inicioK = Object.keys(rows).find(k => /^Hora de inicio/.test(k));
-  const motor = (/`([^`]+)`/.exec(rows[motorK]||'') || [])[1];
-  if (!motor) return null;
-  const desde = toMin(rows[inicioK]);
-  const hasta = toMin((/--hasta\s+(\d{1,2}:\d{2})/.exec(txt) || [])[1] || (/hasta las (\d{1,2}:\d{2})/.exec(txt) || [])[1]);
-  return {motor, desde, hasta};
-}
 function commitRole(c, learned){
   const msg = c.commit.message.split('\n')[0], name = c.commit.author.name;
   const m = /^estado\s+(producto|amortizacion|seguimiento)\b/i.exec(msg);
   if (m){ learned[name] = m[1].toLowerCase(); return learned[name]; }
-  if (/^(ronda|H\d\b|tablero|hito)/i.test(msg)) return 'seguimiento';
-  const id = /^([PAS])-/.exec(msg);
+  if (/^(ronda|H\d\b|tablero|hito|pivote)/i.test(msg)) return 'seguimiento';
+  const id = /^([PAS])-\d/.exec(msg);
   if (id) return ROLES.find(r => r.pre === id[1]).id;
   return learned[name] || null;
 }
 // Reparte barras que se tocan en carriles (PC 2 tiene dos sesiones a la misma hora).
 function lanes(items){
   const ends = [];
-  for (const it of items.sort((a,b) => a.x0 - b.x0)){
+  for (const it of items.sort((a, b) => a.x0 - b.x0)){
     let k = ends.findIndex(e => e <= it.x0 + 0.5);
     if (k < 0){ k = ends.length; ends.push(0); }
     ends[k] = it.x1 + 3; it.lane = k;
@@ -309,12 +537,33 @@ function lanes(items){
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const nowMin = () => (Date.now() - DAY0) / 60000;
-const ago = ms => { const m = Math.round((Date.now()-ms)/60000); return m < 1 ? 'recién' : m < 60 ? `hace ${m} min` : `hace ${Math.floor(m/60)} h ${m%60} min`; };
-const hhmm = ms => new Date(ms).toLocaleTimeString('es-CL',{timeZone:'America/Santiago',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+const params = new URLSearchParams(location.search);
+// Para ensayar la página: ?ahora=15:45 (o ?ahora=dom-07:10) fija el reloj; ?base=/ruta lee los archivos de otra carpeta, sin GitHub.
+const AHORA = params.get('ahora') ? toMin(params.get('ahora').replace('-', ' ')) : null;
+const BASE = params.get('base');
+const nowMin = () => AHORA !== null ? AHORA : (Date.now() - DAY0) / 60000;
+const ago = ms => { const m = Math.round((Date.now() - ms) / 60000); return m < 1 ? 'recién' : m < 60 ? `hace ${m} min` : `hace ${Math.floor(m/60)} h ${m%60} min`; };
+const hhmm = ms => new Date(ms).toLocaleTimeString('es-CL', {timeZone:'America/Santiago', hour:'2-digit', minute:'2-digit', hourCycle:'h23'});
 const dur = m => { m = Math.max(0, Math.round(m)); return m < 60 ? `${m} min` : `${Math.floor(m/60)} h ${String(m%60).padStart(2,'0')} min`; };
-const sleeping = n => n >= toMin('05:15') && n < toMin('08:15');
-const FILES = ['estado/TABLERO.md','WORKPLAN.md', ...ROLES.map(r => r.file)];
+const num = v => typeof v === 'number' ? v.toLocaleString('es-CL', {maximumFractionDigits: 1}) : String(v);
+const durmiendo = n => n >= DIA && n < DIA + 360;   // domingo 00:00 a 06:00
+const cerrado = n => n >= DIA + 510;                 // los repositorios cierran el domingo a las 08:30
+const SELLOS = MOTORES.map(m => `motor/artefactos/${m}/sello.json`);
+const FILES = ['estado/TABLERO.md', 'WORKPLAN.md', ...ROLES.map(r => r.file), ...SELLOS];
+const TITULO = 'Krylov · minería';
+
+// ---- Tema ----
+const TEMAS = ['auto', 'light', 'dark'], TEMA_TXT = {auto:'tema: auto', light:'tema: claro', dark:'tema: oscuro'};
+let tema = 'auto';
+try{ tema = localStorage.getItem('tema') || 'auto'; }catch(e){}
+// ?tema=oscuro o ?tema=claro lo fija desde la dirección (para un proyector o una captura)
+if (/^(oscuro|dark)$/.test(params.get('tema') || '')) tema = 'dark'; else if (/^(claro|light)$/.test(params.get('tema') || '')) tema = 'light';
+function ponerTema(){
+  if (tema === 'auto') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = tema;
+  $('tema').textContent = TEMA_TXT[tema] || 'tema';
+}
+$('tema').onclick = () => { tema = TEMAS[(TEMAS.indexOf(tema) + 1) % TEMAS.length]; try{ localStorage.setItem('tema', tema); }catch(e){} ponerTema(); };
+ponerTema();
 
 // ---- Sincronización ----
 // Con la API de GitHub: se pregunta por el último commit (respuesta de 40 caracteres) y solo si cambió
@@ -330,14 +579,15 @@ try{
 }catch(e){}
 const AUTH = TOKEN ? {Authorization: 'Bearer ' + TOKEN} : {};
 let data = null, sha = null, lastCheck = 0, nextCheck = 0, rate = null, checking = false, unseen = 0;
-let mode = 'api', resetAt = 0, lastChange = 0, rawFp = '';
-const interval = () => mode === 'raw' ? 120e3 : TOKEN ? 20e3 : (rate !== null && rate < 15 ? 300e3 : 90e3);
+let mode = BASE ? 'local' : 'api', resetAt = 0, lastChange = 0, rawFp = '';
+const interval = () => mode === 'local' ? 30e3 : mode === 'raw' ? 120e3 : TOKEN ? 20e3 : (rate !== null && rate < 15 ? 300e3 : 90e3);
 
 async function check(force){
   if (checking) return; checking = true;
   $('dot').className = 'dot busy';
   try{
-    if (mode === 'raw' && Date.now() < resetAt) await checkRaw(force);
+    if (BASE) await checkRaw(force);
+    else if (mode === 'raw' && Date.now() < resetAt) await checkRaw(force);
     else {
       const r = await fetch(`https://api.github.com/repos/${REPO}/commits/main`, {cache:'no-cache', headers:{Accept:'application/vnd.github.sha', ...AUTH}});
       const rem = r.headers.get('x-ratelimit-remaining'); if (rem !== null) rate = +rem;
@@ -354,7 +604,7 @@ async function check(force){
     }
   }catch(e){
     // Sin red hacia la API (o respuesta rara): se leen los archivos igual.
-    mode = 'raw'; resetAt = Date.now() + 5*60e3;
+    if (!BASE){ mode = 'raw'; resetAt = Date.now() + 5*60e3; }
     try{ await checkRaw(force); }catch(e2){}
   }
   lastCheck = Date.now();
@@ -363,8 +613,16 @@ async function check(force){
   render(); tick();
 }
 
-const rawFetch = (ref, p) => fetch(`https://raw.githubusercontent.com/${REPO}/${ref}/${p}`, {cache: ref === 'main' ? 'no-cache' : 'default'})
+const rawFetch = (ref, p) => fetch(BASE ? `${BASE.replace(/\/$/, '')}/${p}` : `https://raw.githubusercontent.com/${REPO}/${ref}/${p}`,
+    {cache: BASE || ref === 'main' ? 'no-cache' : 'default'})
   .then(r => r.ok ? r.text() : '').catch(() => '');
+
+function armar(files, commits){
+  const [tablero, workplan, e1, e2, e3, ...sellosTxt] = files;
+  const sellos = {};
+  MOTORES.forEach((m, i) => { try{ sellos[m] = sellosTxt[i] ? JSON.parse(sellosTxt[i]) : null; }catch(e){ sellos[m] = null; } });
+  return {commits: commits || data?.commits || null, commitsAt: commits ? Date.now() : data?.commitsAt, tablero, workplan, estados: [e1, e2, e3], sellos, sellosTxt};
+}
 
 async function load(newSha){
   let commits = null;
@@ -378,8 +636,7 @@ async function load(newSha){
   const fp = files.join('\0');
   // «Nuevo» = cambió algún archivo o llegó un commit que no se había visto (no basta con volver del modo sin API).
   const isNew = !!data && (fp !== rawFp || (!!commits && !!data.commits && commits[0]?.sha !== data.commits[0]?.sha));
-  const [tablero, workplan, ...estados] = files;
-  setData({commits: commits || data?.commits || null, commitsAt: commits ? Date.now() : data?.commitsAt, tablero, workplan, estados}, isNew);
+  setData(armar(files, commits), isNew);
   sha = ref; rawFp = fp;
 }
 
@@ -390,52 +647,52 @@ async function checkRaw(force){
   if (fp === rawFp && !force && data) return;
   const isNew = !!data && fp !== rawFp;
   rawFp = fp; sha = 'main';
-  const [tablero, workplan, ...estados] = files;
-  setData({commits: data?.commits || null, commitsAt: data?.commitsAt, tablero, workplan, estados}, isNew);
+  setData(armar(files, null), isNew);
 }
 
 function setData(next, isNew){
-  const prevTop = data?.commits?.[0]?.sha;
-  const prevEst = data?.estados;
+  const prev = data;
   data = next;
-  if (!isNew) return;
+  if (!isNew || !prev) return;
   lastChange = Date.now();
   let n = 1;
+  const prevTop = prev.commits?.[0]?.sha;
   if (next.commits && prevTop && next.commits[0]?.sha !== prevTop){
     const fresh = []; for (const c of next.commits){ if (c.sha === prevTop) break; fresh.push(c); }
     data.fresh = new Set(fresh.map(c => c.sha)); n = fresh.length || 1;
   }
-  if (prevEst) data.freshEst = new Set(ROLES.filter((r,i) => prevEst[i] !== next.estados[i]).map(r => r.id));
-  if (document.hidden){ unseen += n; document.title = `(${unseen}) Krylov · Tablero`; }
+  data.freshEst = new Set(ROLES.filter((r, i) => prev.estados[i] !== next.estados[i]).map(r => r.id));
+  // Casos que cambiaron: su fila del tablero o el sello de su motor.
+  const antes = Object.fromEntries(parseCasos(prev.tablero).map(c => [c.nombre, c.fila + '\0' + (prev.sellosTxt[MOTORES.indexOf(c.motor)] || '')]));
+  data.freshCasos = new Set(parseCasos(next.tablero).filter(c => antes[c.nombre] !== c.fila + '\0' + (next.sellosTxt[MOTORES.indexOf(c.motor)] || '')).map(c => c.nombre));
+  if (document.hidden){ unseen += n; document.title = `(${unseen}) ${TITULO}`; }
 }
 
 // ---- Dibujo ----
-const PX = 1.8;             // píxeles por minuto en el plan del sábado
-const T0 = toMin('03:00');
+const PX = 1.8;                         // píxeles por minuto en el plan del sábado
+const T0 = toMin('12:00'), T1 = toMin('21:00');
+const FIN = toMin('18:00'), TOPE = toMin('20:30');
+const METAS = [['Producto terminado', 'sáb 18:00', FIN], ['Tope de redes', 'sáb 20:30', TOPE], ['Entrega', 'dom 08:00', DIA + 480], ['Pitch', 'dom 09:30', DIA + 570]];
+const ICONO = {listo:'✓', curso:'▶', pendiente:'○', nopasa:'✕', cortado:'—', otro:'?'};
+const GLIFO = {hecha:'✓', adelantada:'✓✓', curso:'▶', siguiente:'→', ahora:'◷', pasada:'!', atrasada:'‼', pendiente:'·'};
+const RESP = {
+  red:          ['✓ La red',        'practicó con casos simulados y pasó su sello'],
+  precalculado: ['◷ Precalculado',  'el método lento, calculado antes'],
+  ejemplo:      ['✎ Ejemplo',       'número inventado, para maquetar'],
+  nada:         ['○ Nada todavía',  'la tarjeta no responde'],
+};
 let ganttTouched = false;   // si la persona movió el plan a mano, no se re-centra solo
 
 function render(){
   if (!data) return;
-  const {commits, tablero, workplan, estados} = data;
+  hideTip();
+  const {commits, tablero, workplan, estados, sellos} = data;
   const now = nowMin();
-  const tabSec = sections(tablero);
   const est = estados.map(sections);
-
-  const sem = {};
-  for (const line of (tabSec['Semáforo']||'').split('\n')){
-    const c = line.split('|').map(x => x.trim());
-    const r = ROLES.find(r => c[1] && c[1].toLowerCase().startsWith(r.id));
-    if (r) sem[r.id] = {estado:c[2], nota:c[3], cls: /🔴/.test(c[2]) ? 'bad' : /🟡|🟠/.test(c[2]) ? 'warn' : /🟢/.test(c[2]) ? 'ok' : ''};
-  }
-  const updated = /\*\*Actualizado:\*\*\s*([^·\n]+)/.exec(tablero)?.[1]?.trim() || '';
-  const tu = toMin(updated);
-  const sig = {};
-  for (const b of bullets(Object.entries(tabSec).find(([k]) => /^Siguiente tarea/.test(k))?.[1])){
-    // La línea es del computador que va en su encabezado («**PC 2 · amortizacion:** …»), no del primero que nombre.
-    const pc = /^\*\*\s*(PC\s*\d)/.exec(b)?.[1]?.replace(/\s+/, ' ');
-    const r = ROLES.find(r => r.pc === pc);
-    if (r && !sig[r.id]) sig[r.id] = b.replace(/^\*\*[^*]*\*\*\s*/, '');
-  }
+  const casos = parseCasos(tablero);
+  const pivote = casos.length > 0;
+  const sem = parseSemaforo(tablero), sig = parseSiguiente(tablero);
+  const {t: tu} = parseUpdated(tablero);
 
   const done = new Map(), prog = new Set(), next = new Set();
   est.forEach(s => {
@@ -445,9 +702,10 @@ function render(){
   });
   const tasks = parseTasks(workplan).map(t => ({...t, st: status(t, done, prog, next, now)}));
   const hitos = parseHitos(workplan);
+  const trains = ROLES.map((r, i) => training(est[i]['Entrenamiento en curso']));
 
   const learned = {}, lastByRole = {};
-  const cs = (commits||[]).slice().reverse().map(c => ({c, role: null}));
+  const cs = (commits || []).slice().reverse().map(c => ({c, role: null}));
   cs.forEach(x => x.role = commitRole(x.c, learned));
   cs.forEach(x => { if (!x.role) x.role = learned[x.c.commit.author.name] || null; });
   cs.reverse();
@@ -455,63 +713,70 @@ function render(){
   const freshRoles = new Set([...cs.filter(x => data.fresh?.has(x.c.sha)).map(x => x.role), ...(data.freshEst || [])]);
   const flashOn = Date.now() - lastChange < 90e3;
 
-  // Indicadores
+  $('banner').innerHTML = pivote ? '' : `<div class="banner"><b>Esperando el pivote en main.</b> El repositorio todavía tiene el plan anterior (sin la tabla «Los cinco casos» en <code>estado/TABLERO.md</code>). Esta página se actualiza sola cuando llegue.</div>`;
+
+  // Cuentas regresivas, próximo hito y edad del tablero
   const nextH = hitos.find(h => h.t > now);
-  $('tiles').innerHTML = [
-    ['Producto terminado (sáb 18:00)', `<span data-cd="2026-11-21T18:00:00-03:00"></span>`],
-    ['Entrega (dom 08:30)', `<span data-cd="2026-11-22T08:30:00-03:00"></span>`],
-    [nextH ? `Próximo: ${nextH.id === 'dormir' ? 'dormir' : nextH.id} a las ${fmt(nextH.t)}` : 'Hitos', nextH ? `en ${dur(nextH.t-now)}` : 'listos'],
-    ['Tablero de PC 3', tu !== null ? `hace ${dur(now - tu)}` : '—'],
-  ].map(([k,v]) => `<div class="tile"><div class="k" title="${esc(k)}">${esc(k)}</div><div class="v">${v}</div></div>`).join('');
-  countdowns();
+  const {texto: tuTxt} = parseUpdated(tablero);
+  const tiles = METAS.map(([k, cuando, t]) => [k, t > now ? dur(t - now) : 'ya pasó', cuando, t <= now, '']);
+  tiles.push(['Próximo hito', nextH ? `en ${dur(nextH.t - now)}` : (hitos.length ? 'todos pasaron' : '—'), nextH ? `${nextH.id} · ${fmtDia(nextH.t)}` : '', !nextH, nextH?.q || '']);
+  tiles.push(['Tablero de PC 3', tu !== null ? `hace ${dur(now - tu)}` : '—', tuTxt ? `actualizado ${tuTxt}` : 'sin fecha', false, '']);
+  $('tiles').innerHTML = tiles.map(([k, v, sub, past, tip]) =>
+    `<div class="tile ${past ? 'past' : ''}" ${tip ? `data-tip="${esc(tip)}"` : ''}><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="s">${esc(sub)}</div></div>`).join('');
 
   // Alertas: las importantes primero, a lo más tres a la vista
   const al = [];
-  ROLES.forEach((r,i) => {
+  const quieto = durmiendo(now) || cerrado(now);
+  ROLES.forEach((r, i) => {
     const s = est[i];
     if (!isEmpty(s['Bloqueos'])) al.push(['bad', `${r.pc} bloqueado: ${short(bullets(s['Bloqueos'])[0], 110)}`]);
     const lc = lastByRole[r.id];
-    if (commits && lc && (Date.now()-lc) > 45*60e3 && !sleeping(now)) al.push(['warn', `${r.pc} sin commits ${ago(lc)}`]);
+    if (commits && lc && (Date.now() - lc) > 45*60e3 && !quieto) al.push(['warn', `${r.pc} sin commits ${ago(lc)}`]);
   });
-  if (tu !== null && now - tu > 30 && !sleeping(now)) al.push(['warn', `Tablero sin actualizar hace ${dur(now-tu)}`]);
-  const late = tasks.filter(t => t.st === 'atrasada');
+  if (tu !== null && now - tu > 30 && !quieto) al.push(['warn', `Tablero sin actualizar hace ${dur(now - tu)}`]);
+  const late = now < DIA ? tasks.filter(t => t.st === 'atrasada') : [];   // el domingo ya no se avisa de tareas del sábado
   ROLES.forEach(r => {
-    const l = late.filter(t => t.id.startsWith(r.pre+'-'));
-    if (l.length === 1) al.push(['bad', `${l[0].id} atrasada (desde ${l[0].when}, ${l[0].dur} min): ${short(l[0].desc, 80)}`]);
+    const l = late.filter(t => t.id.startsWith(r.pre + '-'));
+    if (l.length === 1) al.push(['bad', `${l[0].id} atrasada (tope ${l[0].when}, ${l[0].dur} min): ${short(l[0].desc, 80)}`]);
     else if (l.length > 1) al.push(['bad', `${r.pc}: ${l.length} tareas atrasadas (${l.map(t => t.id).join(', ')}): cortar o simplificar`]);
   });
-  const al1 = al.sort((a,b) => (a[0]==='bad'?0:1) - (b[0]==='bad'?0:1));
-  const line = ([c,h]) => `<div class="alert ${c}" title="${esc(h)}">${esc(h)}</div>`;
+  if (pivote) RONDAS.filter(x => x.tipo === 'ronda').forEach(x => {
+    const a = toMin(x.t0), b = toMin(x.t1);
+    if (now < a + 15 || now >= b) return;
+    [[1, x.pc2], [2, x.pc3]].forEach(([i, motor]) => {
+      const c = casos.find(c => c.motor === motor);
+      if (!trains[i] && !(c && ['listo', 'nopasa', 'cortado'].includes(c.etapas.red.cls))) al.push(['warn', `${ROLES[i].pc}: según el calendario debería estar entrenando ${motor} (${x.nombre.toLowerCase()}) y su estado no lo dice`]);
+    });
+  });
+  casos.forEach(c => discrepancias(c, selloFacts(sellos[c.motor])).forEach(d => al.push(['warn', `${c.titulo}: ${d}`])));
+  const al1 = al.sort((a, b) => (a[0] === 'bad' ? 0 : 1) - (b[0] === 'bad' ? 0 : 1));
+  const line = ([c, h]) => `<div class="alert ${c}" title="${esc(h)}">${c === 'bad' ? '✕' : '!'} ${esc(h)}</div>`;
   const alertsOpen = $('alerts').querySelector('details')?.open;
-  $('alerts').innerHTML = al1.slice(0,3).map(line).join('') +
-    (al1.length > 3 ? `<details ${alertsOpen ? 'open' : ''}><summary>${al1.length-3} avisos más</summary>${al1.slice(3).map(line).join('')}</details>` : '');
+  $('alerts').innerHTML = al1.slice(0, 3).map(line).join('') +
+    (al1.length > 3 ? `<details ${alertsOpen ? 'open' : ''}><summary>${al1.length - 3} avisos más</summary>${al1.slice(3).map(line).join('')}</details>` : '');
 
-  // Tarjetas (se conserva qué «Más» estaba abierto)
+  renderCasos(casos, sellos, flashOn);
+  renderTrain(trains, casos, now);
+
+  // Tarjetas de los tres computadores (se conserva qué «Más» estaba abierto)
   const openCards = new Set([...document.querySelectorAll('#roles details[open]')].map(d => d.dataset.k));
-  $('roles').innerHTML = ROLES.map((r,i) => {
+  $('roles').innerHTML = ROLES.map((r, i) => {
     const s = est[i], sm = sem[r.id] || {};
     const persona = /Persona:\s*([^·\n]+)/.exec(estados[i])?.[1]?.trim().replace(/^\[.*\]$/, '') || '';
     const curso = bullets(s['En curso']).filter(b => !isNextLine(b)).slice(-2);
-    const tr = training(s['Entrenamiento en curso']);
-    const mine = tasks.filter(t => t.id.startsWith(r.pre+'-'));
-    const nextPlan = mine.filter(t => !t.night && !['hecha','adelantada','curso'].includes(t.st)).sort((a,b) => a.start-b.start)[0];
+    const mine = tasks.filter(t => t.id.startsWith(r.pre + '-'));
+    const nextPlan = mine.filter(t => t.start !== null && !['hecha', 'adelantada', 'curso'].includes(t.st)).sort((a, b) => a.start - b.start)[0];
     const own = nextText(s['En curso']);
     const sigue = own && (tu === null || own.t === null || own.t >= tu) ? own.text : sig[r.id] || (nextPlan ? `${nextPlan.id} · ${nextPlan.desc}` : '');
     const lc = lastByRole[r.id];
     const row = (k, v) => v ? `<div class="row"><div class="k">${k}</div><div class="v">${v}</div></div>` : '';
-    let trHtml = '';
-    if (tr){
-      const p = tr.desde !== null && tr.hasta !== null ? Math.min(100, Math.max(0, (now - tr.desde) / (tr.hasta - tr.desde) * 100)) : null;
-      trHtml = row('Entrena', `<b>${esc(tr.motor)}</b> ${tr.desde!==null?fmt(tr.desde):''} → ${tr.hasta!==null?fmt(tr.hasta):'?'}${p!==null ? `<div class="prog"><i style="width:${p.toFixed(0)}%"></i></div>` : ''}`);
-    }
     const hechos = bullets(s['Hecho']).slice(-5).reverse();
     const pedidos = isEmpty(s['Pedidos a otros']) ? [] : bullets(s['Pedidos a otros']).slice(-3);
     const nDone = mine.filter(t => t.st === 'hecha' || t.st === 'adelantada').length;
-    return `<div class="role ${sm.cls||''} ${flashOn && freshRoles.has(r.id) ? 'flash' : ''}">
-      <div class="head"><b>${r.pc} · ${r.id}</b><span class="sem">${esc(sm.estado||'')}</span></div>
+    return `<div class="role ${sm.cls || ''} ${flashOn && freshRoles.has(r.id) ? 'flash' : ''}">
+      <div class="head"><b>${r.pc} · ${r.id}</b><span class="sem">${esc(sm.estado || '')}</span></div>
       ${row('Ahora', curso.map(x => esc(short(x, 80))).join('<br>'))}
       ${row('Sigue', esc(short(sigue, 80)))}
-      ${trHtml}
       <div class="meta">${persona ? esc(persona) + ' · ' : ''}${nDone} de ${mine.length} tareas · último commit ${lc ? ago(lc) : '—'}</div>
       <details data-k="${r.id}" ${openCards.has(r.id) ? 'open' : ''}><summary>Más</summary>
         ${hechos.length ? `<b>Hecho</b><ul>${hechos.map(x => `<li>${esc(timeOf(x))} ${esc(short(x, 100))}</li>`).join('')}</ul>` : ''}
@@ -521,40 +786,122 @@ function render(){
     </div>`;
   }).join('');
 
-  renderGantt(tasks, hitos, now);
+  renderGantt(tasks, hitos, now, pivote);
+
+  // Lo que viene después de las 18:00 y el domingo
+  const sigIx = AGENDA.findIndex(([h]) => toMin(h) > now);
+  $('agenda').innerHTML = AGENDA.map(([h, q], i) => {
+    const paso = toMin(h) <= now;
+    return `<div class="${paso ? 'paso' : i === sigIx ? 'sig' : ''}"><span class="h">${paso ? '✓ ' : i === sigIx ? '→ ' : ''}${esc(h)}</span><span>${esc(q)}${paso ? ' (ya pasó)' : ''}</span></div>`;
+  }).join('');
 
   // Commits: una línea cada uno
   const stale = data.commitsAt && mode === 'raw' ? `<div class="note">Lista de commits de las ${hhmm(data.commitsAt)}: la API de GitHub está en su límite para esta red. Los estados y el plan sí están al día.</div>` : '';
-  $('feed').innerHTML = commits ? stale + cs.slice(0,8).map(({c, role}) => {
-    const t = Date.parse(c.commit.committer.date);
-    return `<div title="${esc(c.commit.message.split('\n')[0])}"><span class="when">${hhmm(t)}</span><span class="tag ${role||'otro'}">${role ? ROLES.find(r => r.id===role).pc : '—'}</span>${esc(c.commit.message.split('\n')[0])}</div>`;
-  }).join('') : '<div class="note">Lista de commits no disponible: la API de GitHub está en su límite para esta red. Los estados y el plan sí se leen. Para evitarlo, abrir una vez con <code>#token=…</code>.</div>';
+  $('feed').innerHTML = commits ? stale + cs.slice(0, 10).map(({c, role}) => {
+    const t = Date.parse(c.commit.committer.date), msg = c.commit.message.split('\n')[0];
+    return `<div title="${esc(msg)}"><span class="when">${hhmm(t)}</span><span class="tag">${role ? ROLES.find(r => r.id === role).pc : '—'}</span>${esc(msg)}</div>`;
+  }).join('') : `<div class="note">${BASE ? 'Modo local: sin lista de commits.' : 'Lista de commits no disponible: la API de GitHub está en su límite para esta red. Los estados y el plan sí se leen. Para evitarlo, abrir una vez con <code>#token=…</code>.'}</div>`;
 
-  const tabMd = tablero.replace(/^#\s.*\n/, '');
+  const tabMd = (tablero || '').replace(/^#\s.*\n/, '');
   $('tablero').innerHTML = DOMPurify.sanitize(marked.parse(tabMd || '_No se pudo leer._'));
 }
 
-function renderGantt(tasks, hitos, now){
-  const last = Math.max(...tasks.filter(t => !t.night).map(t => t.start + (t.dur||20)), toMin('19:00'));
-  const T1 = Math.ceil(last/30)*30;
+function renderCasos(casos, sellos, flashOn){
+  if (!casos.length){
+    $('resumen').textContent = '';
+    $('casos').innerHTML = `<div class="caso" style="display:block;color:var(--ink2)">Todavía no hay tabla «Los cinco casos» en <code>estado/TABLERO.md</code>.</div>`;
+    return;
+  }
+  const r = resumenCasos(casos);
+  $('resumen').textContent = `${r.red} de ${r.total} responden con su red · ${r.precalculado} ${r.precalculado === 1 ? 'precalculada' : 'precalculadas'} · ${r.ejemplo} todavía de ejemplo` + (r.nada ? ` · ${r.nada} sin respuesta` : '');
+  $('casos').innerHTML = casos.map(c => {
+    const f = selloFacts(sellos[c.motor]);
+    const pipe = ETAPAS.map(([k, nombre]) => {
+      const e = c.etapas[k];
+      return `<li class="${e.cls}" data-tip="${esc(`${nombre}: ${e.texto}`)}"><span class="st">${esc(nombre)}</span><span class="ev"><span class="ic" aria-hidden="true">${ICONO[e.cls]}</span>${esc(e.texto)}</span></li>`;
+    }).join('');
+    const [rv, rs] = RESP[c.responde.cls] || [`? ${c.responde.texto}`, 'valor que no conozco'];
+    let hechos;
+    if (!f) hechos = `<span class="fact">Sin <code>sello.json</code> de <code>${esc(c.motor)}</code> en main todavía.</span>`;
+    else {
+      const p = [];
+      p.push(`<b>Sello: ${f.pasa === true ? '✓ pasa' : f.pasa === false ? '✕ no pasa' : 'sin veredicto'}</b>${f.ensayo ? ' (es un ensayo: no cuenta)' : ''}`);
+      if (f.sims !== null) p.push(`practicó con <b>${num(f.sims)}</b> simulaciones`);
+      if (f.min !== null) p.push(`${num(f.min)} min de entrenamiento`);
+      if (f.cob !== null) p.push(`su rango de 90% acierta ${num(Math.round(f.cob * 1000) / 10)}%`);
+      if (f.lat !== null) p.push(`${num(f.lat)} ms por análisis`);
+      if (f.mcmc !== null) p.push(`el método lento tarda ${num(f.mcmc)} s`);
+      if (f.maquina) p.push(esc(f.maquina));
+      hechos = `<span class="fact">${p.join(' · ')}</span>`;
+    }
+    const disc = discrepancias(c, f).map(d => `<span class="disc">! ${esc(d)}</span>`).join('');
+    return `<div class="caso ${flashOn && data.freshCasos?.has(c.nombre) ? 'flash' : ''}">
+      <div class="quien"><b>${esc(c.titulo)}</b><span class="q">${esc(c.pregunta)}</span><div class="m">caso <code>${esc(c.nombre)}</code> · motor <code>${esc(c.motor)}</code></div></div>
+      <ol class="pipe" aria-label="Etapas de ${esc(c.titulo)}">${pipe}</ol>
+      <div class="resp ${c.responde.cls}"><div class="k">Hoy responde</div><div class="v">${esc(rv)}</div><div class="s">${esc(rs)}</div></div>
+      <div class="pie">${hechos}${disc}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderTrain(trains, casos, now){
+  const MACS = [[1, 'MacBook Air M4'], [2, 'MacBook Air M3']];
+  const macs = MACS.map(([i, modelo]) => {
+    const tr = trains[i];
+    let what = 'Nada entrenando ahora, según su estado.', bar = '';
+    if (tr){
+      const p = tr.desde !== null && tr.hasta !== null && tr.hasta > tr.desde ? Math.min(100, Math.max(0, (now - tr.desde) / (tr.hasta - tr.desde) * 100)) : null;
+      const falta = tr.hasta !== null ? (tr.hasta > now ? ` · faltan ${dur(tr.hasta - now)}` : ' · ya debería haber terminado') : '';
+      what = `Entrena <b><code>${esc(tr.motor)}</code></b> ${tr.desde !== null ? fmt(tr.desde) : '?'} → ${tr.hasta !== null ? fmt(tr.hasta) : '?'}${p !== null ? ` · ${p.toFixed(0)}%` : ''}${falta}`;
+      if (p !== null) bar = `<div class="prog" role="img" aria-label="Avance ${p.toFixed(0)}%"><i style="width:${p.toFixed(0)}%"></i></div>`;
+    }
+    return `<div class="mac"><b>${ROLES[i].pc}</b><span class="sub">${modelo}</span><div class="what">${what}</div>${bar}</div>`;
+  }).join('');
+
+  // Calendario fijo de rondas, de 14:00 a 21:00, a lo ancho (sin scroll)
+  const A = toMin('14:00'), B = toMin('21:00'), pct = m => ((m - A) / (B - A) * 100).toFixed(2) + '%';
+  let axis = '';
+  for (let h = 14; h <= 21; h++) axis += `<span style="left:${pct(h*60)};transform:translateX(${h === 14 ? '0' : h === 21 ? '-100%' : '-50%'})">${h}:00</span>`;
+  const fila = (pc, campo) => `<div class="calrow"><div class="clab">${pc}</div><div class="caltrack">` + RONDAS.map(x => {
+    const a = toMin(x.t0), b = toMin(x.t1);
+    const cls = now >= b ? 'pasado' : now >= a ? 'ahora' : 'futuro';
+    const txt = x.tipo === 'val' ? 'valida' : x[campo];
+    return `<div class="blk ${cls} ${x.tipo}" style="left:${pct(a)};width:calc(${((b - a) / (B - A) * 100).toFixed(2)}% - 2px)" data-tip="${esc(`${x.nombre} · ${x.t0} a ${x.t1}\n${pc}: ${x[campo]}${x.tipo === 'val' ? '\nSin nada entrenando en ese computador' : ''}\n${cls === 'pasado' ? 'Ya pasó' : cls === 'ahora' ? 'Ahora' : 'Todavía no'}`)}">${esc(txt)}</div>`;
+  }).join('') +
+    `<div class="calmark" style="left:${pct(FIN)}" data-tip="18:00 · producto terminado"></div><div class="calmark" style="left:${pct(TOPE)}" data-tip="20:30 · tope de redes"></div>` +
+    (now > A && now < B ? `<div class="calnow" style="left:${pct(now)}"></div>` : '') + '</div></div>';
+  $('train').innerHTML = `<div class="macs">${macs}</div>
+    <div class="cal"><div class="calaxis">${axis}</div>${fila('PC 2', 'pc2')}${fila('PC 3', 'pc3')}
+    <div class="calnote">Ronda 1: 14:30 a 16:10 · validación (nada entrenando): 16:10 a 16:30 · ronda 2: 16:30 a 18:15 · validación: 18:15 a 19:00 · las dos rayas son las 18:00 (producto terminado) y las 20:30 (tope de redes)${now > A && now < B ? ` · la raya roja es ahora (${fmt(now)})` : ''}.</div></div>`;
+}
+
+const label = st => ({hecha:'hecha', adelantada:'hecha antes de su hora', curso:'en curso', siguiente:'la siguiente', ahora:'en su horario, sin empezar', pasada:'pasada de hora', atrasada:'atrasada', pendiente:'pendiente'})[st] || st;
+function renderGantt(tasks, hitos, now, pivote){
+  const conHora = tasks.filter(t => t.start !== null);
+  if (!conHora.length){
+    $('gantt').innerHTML = `<div class="gempty">${pivote ? 'No encontré tareas con número 21 o más en <code>WORKPLAN.md</code>.' : 'Esperando el pivote en main: <code>WORKPLAN.md</code> todavía no trae las tareas nuevas (P-21, A-21, S-21 en adelante).'}</div>`;
+    $('tabla').innerHTML = '';
+    return;
+  }
   const W = (T1 - T0) * PX, x = m => ((m - T0) * PX).toFixed(1);
   const LAB = 64, BAR = 20, GAP = 4;
+  const marcas = hitos.filter(h => h.t >= T0 && h.t <= T1);
   let g = `<div style="width:${W + LAB}px">`;
   g += `<div class="gaxis" style="margin-left:${LAB}px">`;
-  for (let h = Math.ceil(T0/60); h*60 <= T1; h++) g += `<span style="left:${x(h*60)}px">${String(h).padStart(2,'0')}:00</span>`;
+  for (let h = Math.ceil(T0 / 60); h * 60 <= T1; h++) g += `<span style="left:${x(h*60)}px">${String(h).padStart(2,'0')}:00</span>`;
   g += `</div><div class="ghitos" style="margin-left:${LAB}px">`;
-  hitos.forEach(h => g += `<span style="left:${x(h.t)}px" title="${esc(h.q||'')}">${h.id === 'dormir' ? 'dormir' : h.id} · ${fmt(h.t)}</span>`);
-  g += `<span class="fin" style="left:${x(toMin('18:00'))}px">producto listo · 18:00</span></div>`;
-  g += '<div style="position:relative">';
-  // capa de fondo (debajo de las barras): la noche, los hitos y las 18:00
+  marcas.forEach(h => g += `<span class="${h.t === FIN || h.t === TOPE ? 'fin' : ''}" style="left:${x(h.t)}px" data-tip="${esc(`${h.id} · ${fmt(h.t)}${h.q ? '\n' + h.q : ''}`)}">${h.t === FIN ? `${esc(h.id)} · producto listo` : h.id === 'Tope de redes' ? 'tope de redes' : esc(h.id)} · ${fmt(h.t)}</span>`);
+  if (!marcas.some(h => h.t === FIN)) g += `<span class="fin" style="left:${x(FIN)}px">producto listo · 18:00</span>`;
+  if (!marcas.some(h => h.t === TOPE)) g += `<span class="fin" style="left:${x(TOPE)}px">tope de redes · 20:30</span>`;
+  g += '</div><div style="position:relative">';
+  // capa de fondo (debajo de las barras): los hitos, las 18:00 y las 20:30
   g += `<div class="overlay" style="left:${LAB}px;width:${W}px">`;
-  g += `<div class="sleep" style="left:${x(toMin('05:15'))}px;width:${(toMin('08:15')-toMin('05:15'))*PX}px" title="05:15 a 08:15: se duerme, los agentes siguen solos"></div>`;
-  hitos.forEach(h => g += `<div class="vline" style="left:${x(h.t)}px"></div>`);
-  g += `<div class="vline fin" style="left:${x(toMin('18:00'))}px"></div></div>`;
+  marcas.filter(h => h.t !== FIN && h.t !== TOPE).forEach(h => g += `<div class="vline" style="left:${x(h.t)}px"></div>`);
+  g += `<div class="vline fin" style="left:${x(FIN)}px"></div><div class="vline fin" style="left:${x(TOPE)}px"></div></div>`;
   ROLES.forEach(r => {
-    const mine = tasks.filter(t => t.id.startsWith(r.pre+'-'));
-    const day = mine.filter(t => !t.night).map(t => {
-      const w = Math.max((t.dur || 20) * PX, t.id.length * 6.4 + 8);
+    const mine = tasks.filter(t => t.id.startsWith(r.pre + '-'));
+    const day = mine.filter(t => t.start !== null && t.start < T1).map(t => {
+      const w = Math.max((t.dur || 20) * PX, (t.id.length + GLIFO[t.st].length) * 6.4 + 14);
       return {t, x0: (t.start - T0) * PX, x1: (t.start - T0) * PX + w, w};
     });
     const n = lanes(day);
@@ -562,8 +909,8 @@ function renderGantt(tasks, hitos, now){
     const nDone = mine.filter(t => t.st === 'hecha' || t.st === 'adelantada').length;
     g += `<div class="grow" style="height:${h}px"><div class="lab"><b>${r.pc}</b><small>${nDone}/${mine.length} hechas</small></div><div class="track">`;
     day.forEach(({t, x0, w, lane}) => {
-      const tip = `${t.id} · ${t.when} · ${t.dur||'?'} min · ${label(t.st)}\n${short(t.desc, 200)}`;
-      g += `<div class="bar ${t.st}" style="left:${x0.toFixed(1)}px;width:${(w-2).toFixed(1)}px;top:${GAP + 1 + lane*(BAR+GAP)}px" title="${esc(tip)}">${t.id}</div>`;
+      const tip = `${t.id} · tope ${t.when} · ${t.dur || '?'} min · ${label(t.st)}\n${short(t.desc, 220)}`;
+      g += `<div class="bar ${t.st}" style="left:${x0.toFixed(1)}px;width:${(w - 2).toFixed(1)}px;top:${GAP + 1 + lane * (BAR + GAP)}px" data-tip="${esc(tip)}"><span aria-hidden="true">${GLIFO[t.st]}</span> ${t.id}</div>`;
     });
     g += '</div></div>';
   });
@@ -576,40 +923,47 @@ function renderGantt(tasks, hitos, now){
   $('gantt').innerHTML = g;
   if (ganttTouched) sc.scrollLeft = keep; else centerNow();
 
-  // Lista nocturna: tareas sin hora, como fichas
-  $('night').innerHTML = '<span class="t">Lista nocturna (agentes solos):</span>' + ROLES.map(r => {
-    const ns = tasks.filter(t => t.night && t.id.startsWith(r.pre+'-'));
-    return ns.length ? `<span class="grp"><b style="font-size:11px">${r.pc}</b>${ns.map(t => `<span class="chip ${t.st}" title="${esc(t.id + ' · ' + label(t.st) + '\n' + short(t.desc, 200))}">${t.id}${t.st === 'hecha' ? ' ✓' : ''}</span>`).join('')}</span>` : '';
-  }).join('');
+  // El mismo plan como tabla (para leerlo en el teléfono o con lector de pantalla)
+  $('tabla').innerHTML = `<table class="t"><thead><tr><th>Tarea</th><th>Tope</th><th>Min</th><th>Estado</th><th>Qué</th></tr></thead><tbody>` +
+    tasks.slice().sort((a, b) => (a.start ?? 1e9) - (b.start ?? 1e9)).map(t =>
+      `<tr><td><b>${t.id}</b></td><td>${esc(t.when)}</td><td>${t.dur || ''}</td><td>${GLIFO[t.st]} ${label(t.st)}</td><td>${esc(short(t.desc, 140))}</td></tr>`).join('') + '</tbody></table>';
 }
-const label = st => ({hecha:'hecha', adelantada:'hecha antes de su hora', curso:'en curso', siguiente:'la siguiente', ahora:'en su horario, sin empezar', pasada:'pasada de hora', atrasada:'atrasada', pendiente:'pendiente'})[st] || st;
 function centerNow(){
   const sc = $('gscroll'); if (!sc) return;
-  const now = nowMin();
-  const target = (Math.max(T0, now - 75) - T0) * PX;
-  sc.scrollLeft = Math.max(0, target);
+  sc.scrollLeft = Math.max(0, (Math.max(T0, nowMin() - 75) - T0) * PX);
 }
 $('gscroll').addEventListener('pointerdown', () => ganttTouched = true);
 $('gscroll').addEventListener('wheel', () => ganttTouched = true, {passive:true});
 $('goNow').onclick = () => { ganttTouched = false; centerNow(); };
 
-function cd(t){ const s = Math.max(0, Math.round((t - Date.now())/1000)); return `${Math.floor(s/3600)} h ${String(Math.floor(s%3600/60)).padStart(2,'0')} min`; }
-const countdowns = () => document.querySelectorAll('[data-cd]').forEach(el => el.textContent = cd(Date.parse(el.dataset.cd)));
+// ---- Globo de ayuda: al pasar el mouse o al tocar cualquier cosa con data-tip ----
+const tipEl = $('tip');
+function showTip(el){
+  tipEl.textContent = el.dataset.tip; tipEl.hidden = false;
+  const r = el.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+  tipEl.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.left + r.width / 2 - w / 2)) + 'px';
+  tipEl.style.top = (r.top - h - 6 > 4 ? r.top - h - 6 : r.bottom + 6) + 'px';
+}
+function hideTip(){ tipEl.hidden = true; }
+document.addEventListener('pointerover', e => { if (e.pointerType !== 'mouse') return; const el = e.target.closest?.('[data-tip]'); if (el) showTip(el); else hideTip(); });
+document.addEventListener('click', e => { const el = e.target.closest?.('[data-tip]'); if (el) showTip(el); else hideTip(); });
+window.addEventListener('scroll', hideTip, {passive:true, capture:true});
+
 function tick(){
-  countdowns();
   if (!lastCheck) return;
   const raw = mode === 'raw', slow = !TOKEN && rate !== null && rate < 15;
   $('dot').className = 'dot ' + (checking ? 'busy' : document.hidden ? 'off' : raw || slow ? 'slow' : '');
   const sync = !data ? 'sin datos'
+    : mode === 'local' ? `modo local (${BASE}) · revisado ${ago(lastCheck)}`
     : raw ? `modo sin API (límite de GitHub hasta las ${hhmm(resetAt)}): archivos de main con hasta 5 min de atraso · revisado ${ago(lastCheck)}`
-    : `al día con ${sha ? sha.slice(0,7) : 'main'}` +
+    : `al día con ${sha ? sha.slice(0, 7) : 'main'}` +
       (data.commits?.[0] ? ` (commit ${ago(Date.parse(data.commits[0].commit.committer.date))})` : '') +
       ` · revisado ${ago(lastCheck)}` + (slow ? ' · modo ahorro' : '');
-  $('sync').textContent = sync; $('sync').title = sync;
+  $('sync').textContent = sync + (AHORA !== null ? ` · reloj fijo en ${fmtDia(AHORA)}` : ''); $('sync').title = sync;
 }
 $('btn').onclick = () => check(true);
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden){ unseen = 0; document.title = 'Krylov · Tablero'; check(); }
+  if (!document.hidden){ unseen = 0; document.title = TITULO; check(); }
 });
 setInterval(() => { if (!document.hidden && Date.now() >= nextCheck) check(); }, 5e3);
 setInterval(tick, 15e3);
